@@ -39,6 +39,14 @@ No dependency installation or build step is required. The runtime consists of th
 
 Use a current Chrome, Edge, Firefox or Safari release. Images may be PNG, JPEG or WebP, up to 30 MB. Text supports up to 120 characters within the bundled font coverage.
 
+## Technology stack
+
+- **Application:** HTML, responsive CSS, JavaScript ES modules and browser APIs. Canvas 2D processes pixels and renders PNG output; SVG exports reuse the same geometry. Bundled WOFF2 fonts supply pixel glyphs, and local storage saves editor settings.
+- **Algorithms:** bitmap typography, word/character wrapping, binary-search dot sizing, stratified image sampling, RGB/HSV conversion and OKLab/OKLCH paper colors.
+- **Development and delivery:** Node.js unit tests, Python with Playwright for browser checks, a Python HTTP server for local previews, and GitHub Actions with GitHub Pages for static hosting.
+
+The [learning guide](docs/learning.md) maps these technologies to source files and provides exercises for rebuilding the editor independently.
+
 ## Development
 
 The static files are maintained directly:
@@ -65,6 +73,11 @@ The GitHub Pages workflow runs these tests and publishes `punch-studio/dist/` on
 
 - [Usage and controls](docs/usage.md)
 - [Rendering and layout algorithms](docs/algorithm.md)
+- [Technology stack and learning guide](docs/learning.md)
 - [Testing](docs/testing.md)
 - [Deployment](docs/deployment.md)
 - [Asset licenses](docs/licenses.md)
+
+## License
+
+The original application code and project documentation are released under the [MIT License](LICENSE). Retain the copyright and permission notices when redistributing the software. Bundled fonts and sample artwork have separate terms; see [Licenses and attribution](docs/licenses.md).

@@ -2,9 +2,9 @@
 
 ## Project source
 
-A repository-wide software license has not yet been adopted. The original application code and classic 5-by-7 bitmap alphabet are maintained in this repository. Third-party fonts and sample artwork have separate terms.
+The original application code, classic 5-by-7 bitmap alphabet and project documentation are licensed under the [MIT License](../LICENSE), copyright 2026 YohaneMashiro. The static distribution includes the same notice at `punch-studio/dist/LICENSE.txt`. Third-party fonts and sample artwork are excluded from this grant and retain their separate terms below.
 
-For permissive reuse with retained copyright and license notices, [MIT](https://opensource.org/license/mit) is a suitable software-license choice. It permits modification, redistribution and commercial use without royalties or requiring modified source to be published. It does not mandate visible author credit in every application's interface.
+[MIT](https://opensource.org/license/mit) permits modification, redistribution and commercial use without royalties or requiring modified source to be published. Keep the copyright and permission notices in copies or substantial portions of the software. It does not mandate visible author credit in every application's interface.
 
 ## Fusion Pixel font
 
@@ -21,4 +21,4 @@ Font data is unchanged; only the intermediate `.ttf` filename suffix is omitted.
 
 The default image at `punch-studio/dist/assets/sample.png` is credited to [ShiErShi](https://xhslink.cn/o/75GwJDczjxb). The editor displays this attribution for the sample and hides it for uploaded images.
 
-No open license is asserted for this artwork. Attribution does not grant redistribution or relicensing rights; any software license adopted for this project does not cover the image. Use artwork you have the rights to use for your own examples.
+No open license is asserted for this artwork. Attribution does not grant redistribution or relicensing rights; the project's MIT License does not cover the image. Use artwork you have the rights to use for your own examples.

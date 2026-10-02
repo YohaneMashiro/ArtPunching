@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "license": "MIT",
   "description": "Browser-local punch art editor with offline pixel fonts",
   "scripts": {
     "serve": "python3 -m http.server 4173 --bind 0.0.0.0 --directory dist",

@@ -48,6 +48,8 @@ with sync_playwright() as p:
     assert page.locator('#font-state').inner_text() == '离线点阵字库'
     assert page.locator('[data-mode=punch]').get_attribute('aria-pressed') == 'true'
     assert page.locator('#line-count').inner_text() == '1 行文字'
+    assert page.locator('#export-bottom').count() == 0
+    assert page.locator('.export-trigger').count() == 1
     page.screenshot(path=OUT / 'studio-desktop.png')
     record('initial local editor / real font loading')
 

@@ -121,8 +121,8 @@ def pixel_bounds(page, mode):
     }''', {'width': plan['width'], 'region': region, 'mode': mode})
 
 
-def download(page, kind, name, opener='#export-top', scale='1'):
-    click(page, opener, render=False)
+def download(page, kind, name, scale='1'):
+    click(page, '#export-top', render=False)
     page.locator('#export-scale').select_option(scale)
     covered.add('export-scale')
     with page.expect_download() as pending:
@@ -159,6 +159,19 @@ with sync_playwright() as p:
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.goto(BASE)
     ready(page)
+    demo_name = page.locator('#image-name').inner_text()
+    before_language = {'art': digest(page), 'settings': read(page)['settings'], 'zoom': page.locator('#zoom').input_value()}
+    page.locator('#language-select').select_option('en')
+    covered.add('language-select')
+    ready(page)
+    assert page.locator('html').get_attribute('lang').startswith('en')
+    assert digest(page) == before_language['art']
+    assert read(page)['settings'] == before_language['settings']
+    assert page.locator('#zoom').input_value() == before_language['zoom']
+    page.locator('#language-select').select_option('zh')
+    ready(page)
+    assert page.locator('html').get_attribute('lang').startswith('zh')
+    record('Chinese/English selector preserves artwork, settings, and zoom')
     landscape = fixture(page, 'audit-landscape.png')
     portrait = fixture(page, 'audit-portrait.png', 600, 800)
     upload(page, landscape)
@@ -319,7 +332,9 @@ with sync_playwright() as p:
     click(page, '#view-original')
     assert digest(page) != result
     # Export always uses the result even when original preview is selected.
-    png = download(page, 'png', 'export-from-original.png', opener='#export-bottom')
+    assert page.locator('#export-bottom').count() == 0
+    assert page.locator('.export-trigger').count() == 1
+    png = download(page, 'png', 'export-from-original.png')
     dimensions = read(page)
     assert struct.unpack('>II', png.read_bytes()[16:24]) == (round(dimensions['width']), round(dimensions['height']))
     click(page, '#view-result')
@@ -335,7 +350,7 @@ with sync_playwright() as p:
     png2 = download(page, 'png', 'export-2x.png', scale='2')
     assert struct.unpack('>II', png2.read_bytes()[16:24]) == (round(dimensions['width']*2), round(dimensions['height']*2))
     download(page, 'svg', 'export.svg')
-    record('original/result, zoom, both export openers, close, scales, PNG, and SVG work')
+    record('original/result, zoom, sole top export entry, close, scales, PNG, and SVG work')
 
     # Ctrl+wheel controls only the artwork view, with a real sensitivity effect.
     before_wheel = download(page, 'svg', 'before-wheel.svg').read_bytes()
@@ -375,7 +390,7 @@ with sync_playwright() as p:
     # The brand link is actionable navigation and correctly reloads the editor.
     click(page, '.brand', 'brand', render=False)
     ready(page)
-    assert page.locator('#image-name').inner_text() == '绿野 · 示例原画'
+    assert page.locator('#image-name').inner_text() == demo_name
     record('brand returns to fresh editor')
     inventory = page.evaluate('''()=>Array.from(document.querySelectorAll('button,input,select,textarea,details>summary,a.brand')).map(e=>{
       if(e.id)return e.id;

@@ -1,10 +1,10 @@
 # 本地测试与验收
 
-验证日期：2026-10-02。全部在 WSL 中执行，没有改变 Codex 的 WSL 运行设置。此次验证覆盖双轴定位、独立原画散孔、两种分割方向与 Ctrl 滚轮缩放；GitHub Pages 已成功发布并完成线上检查。
+验证日期：2026-10-02。全部在 WSL 中执行，没有改变 Codex 的 WSL 运行设置。此次验证覆盖双轴定位、独立原画散孔、两种分割方向、Ctrl 滚轮缩放、中英界面与示例署名；GitHub Pages 已成功发布并完成线上检查。
 
 ## 结果
 
-16 项算法测试、17 项基础浏览器检查、18 项全面控件检查全部通过。全面检查覆盖页面中发现的全部 46 个交互元素及拖放上传，核对实际画布像素、下载文件和 SVG 坐标。浏览器检查使用真实 Chromium；可选接口通过 WebMCP shim 验证状态行为，原生标准的宿主集成未验证。
+16 项算法测试、17 项基础浏览器检查、19 项全面控件检查、10 项双语与署名检查全部通过。全面检查覆盖页面中发现的全部 46 个交互元素及拖放上传，核对实际画布像素、下载文件和 SVG 坐标。浏览器检查使用真实 Chromium；可选接口通过 WebMCP shim 验证状态行为，原生标准的宿主集成未验证。
 
 | 范围 | 结果 |
 | --- | --- |
@@ -30,7 +30,12 @@
 | Ctrl 滚轮与灵敏度 | 0.2× 与 2.5× 同样滚动分别得到 104% 与 157% 缩放；普通滚轮不缩放 |
 | 浏览器缩放 / 导出稳定性 | 浏览器 viewport scale 始终 1；Ctrl 预览缩放前后 SVG 字节完全一致 |
 | 预览极值 / 手机左右布局 | 25–300% 可用；手机 300% 预览不会造成页面横向溢出，画布内可滚动 |
-| 所有按钮、折叠区、色块、恢复默认、两个导出入口、关闭对话框 | 全部覆盖并通过 |
+| 所有按钮、折叠区、色块、恢复默认、右上角唯一导出入口、关闭对话框 | 全部覆盖并通过 |
+| 默认语言 / 中英切换 | 英文浏览器与刷新后均默认中文；切换保留文字、设置、作品像素、缩放与灵敏度 |
+| 英文文案 / 无障碍标签 / 错误 / 导出 | 静态及动态文案、提示、控件说明、错误与下载完成信息全部覆盖 |
+| 读取图片期间切换语言 | 立即翻译加载状态与上一张预览的统计信息；读取完成保留用户文件名 |
+| 示例原画署名 | 十二時与提供的来源链接一致；上传后隐藏，重新使用示例时恢复 |
+| 英文手机 320 / 390 px | 两种布局与高级设置无页面横向溢出、无脚本异常 |
 
 ## 高保真证据
 
@@ -42,7 +47,7 @@
 
 ## 线上发布检查
 
-[线上页面](https://yohanemashiro.github.io/ArtPunching/) 返回 HTTP 200；首页、app.js、core.js、style.css 的 SHA-256 与本地已验证版本一致。真实 Chromium 中确认本地打包字库加载、左右布局、文字水平位置改变实际画面，以及 Ctrl 滚轮只缩放预览；页面无脚本异常。发布前的 46 项全面控件检查均通过。
+[线上页面](https://yohanemashiro.github.io/ArtPunching/) 返回 HTTP 200；首页、app.js、core.js、i18n.js、style.css 的 SHA-256 与本地已验证版本一致。真实 Chromium 中确认本地打包字库加载、中文默认、英文切换、示例署名与唯一顶部导出入口；页面无脚本异常。发布前的 46 个交互元素检查均通过。
 
 ## 复现算法测试
 
@@ -64,6 +69,7 @@ python3 -m venv /tmp/punch-qa
 /tmp/punch-qa/bin/python -m playwright install chromium
 /tmp/punch-qa/bin/python tests/browser_smoke.py
 /tmp/punch-qa/bin/python tests/control_audit.py
+/tmp/punch-qa/bin/python tests/i18n_smoke.py
 ```
 
 Linux 浏览器需要系统图形库；此次环境缺少 `libasound.so.2`，测试时将 Ubuntu 的 `libasound2t64` 解包到临时目录并通过 `LD_LIBRARY_PATH` 使用，没有切换 Windows 执行环境。屏幕截图使用 Windows 本地 UI 字体供浏览器显示中文，这些商业字体未加入网页或项目分发。
@@ -74,9 +80,12 @@ Linux 浏览器需要系统图形库；此次环境缺少 `libasound.so.2`，测
 - `studio-desktop.png` / `studio-mobile.png`：桌面和手机截图
 - `punch.png` / `punch-2x.png` / `punch.svg`：原画文字导出
 - `transfer.png` / `transfer.svg`：碎片拼字导出
-- `control-audit/results.json`：18 项控件验收与全部 46 项覆盖清单
+- `control-audit/results.json`：19 项控件验收与全部 46 项覆盖清单
 - `control-audit/*.svg`：位置滑块改变导出坐标的证据
 - `control-audit/mobile-horizontal.png`：手机左右拼字布局
+- `i18n/results.json`：10 项双语、署名与读取竞争检查
+- `i18n/english-desktop.png` / `i18n/english-mobile-*.png`：英文桌面与手机截图
+- `i18n/english-2x.png` / `i18n/english.svg`：英文界面实际下载文件
 
 这些生成物已在项目 `.gitignore` 中忽略。浏览器检查默认访问 `http://localhost:4173/`，可用 `PUNCH_TEST_URL` 环境变量替换。
 

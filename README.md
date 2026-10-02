@@ -4,6 +4,8 @@
 
 默认在原画上以孔洞拼出文字；也可以在原画旁以图像块拼字，选择上下或左右布局。支持中英文点阵、自动估算孔径与换行、水平/垂直定位、智能底色、独立原画散孔、高清 PNG 和内嵌图片的 SVG 导出。预览支持 Ctrl + 滚轮缩放与灵敏度调节。
 
+界面支持中文 / English，每次打开默认中文。默认示例原画署名：[十二時](https://xhslink.cn/o/75GwJDczjxb)，素材权利说明见 [许可文档](docs/licenses.md)。
+
 在线使用：[Alive · 打孔艺术工作室](https://yohanemashiro.github.io/ArtPunching/)。源码仓库：[YohaneMashiro/ArtPunching](https://github.com/YohaneMashiro/ArtPunching)。已通过 GitHub Pages 发布并完成线上检查，提交邮箱使用 `ylpwannzdm@126.com`。应用没有后端、远程字体、分析脚本或上传 API；用户图片只在浏览器内处理。
 
 ## 本地启动（WSL）

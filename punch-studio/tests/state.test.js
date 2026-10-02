@@ -30,9 +30,9 @@ test('a recent browser session restores artwork settings, text and view without 
     imageShape: 'circle', imageHoleSize: 44, imageHoleColor: '#0033AA',
   };
   const view = {zoom: 1.8, sensitivity: 1.4, original: true, exportScale: 2};
-  const storage = memoryStorage(record({language: 'en', letters: '慢慢来\nALIVE', settings, view}));
+  const storage = memoryStorage(record({language: 'en', letters: '\u6162\u6162\u6765\nALIVE', settings, view}));
   assert.deepEqual(readState(storage, defaults, now + 1000), {
-    language: 'en', letters: '慢慢来\nALIVE',
+    language: 'en', letters: '\u6162\u6162\u6765\nALIVE',
     settings: {...defaults, ...settings, paperColor: '#aabbcc', imageHoleColor: '#0033aa', position: 20},
     view,
   });
@@ -120,7 +120,7 @@ test('language, text and view settings recover independently and respect their l
   assert.deepEqual({language: invalid.language, letters: invalid.letters, view: invalid.view}, {
     language: 'zh', letters: 'ALIVE ART', view: {zoom: 1, sensitivity: 1, original: false, exportScale: 1},
   });
-  for (const letters of ['', 'a'.repeat(240), '🌿'.repeat(120), 'hello\n你好']) {
+  for (const letters of ['', 'a'.repeat(240), '🌿'.repeat(120), 'hello\n\u4f60\u597d']) {
     const state = readState(memoryStorage(record({letters})), defaults, now);
     assert.equal(state.letters, letters);
   }

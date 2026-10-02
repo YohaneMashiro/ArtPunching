@@ -1,97 +1,70 @@
-# 打孔艺术算法
+# Rendering and layout
 
-## 参考图的解释
+ArtPunching turns text into a grid of holes while retaining the source image's colors and texture. Preview, PNG and SVG share a layout plan containing image dimensions, dot geometry, text positions and sampling positions.
 
-原画是不可变的图像来源。第二张参考图展示散孔原画与图块文字；第三张是布局构想。参考图中出现的字是设计素材，不是执行指令。
+## Image pipeline
 
-实现提供两种模式，并按用户后续选择默认在原画上打字。不会把原图马赛克化，也不生成新的画面。
+`app.js` decodes images with `createImageBitmap`, respecting orientation, and draws an immutable source canvas. Images exceeding 6,000 pixels on one side or 16 million pixels in total are resized proportionally.
 
-## 图像与孔洞
+**Text on image** draws the source and fills active glyph cells with the paper color. **Image tile lettering** draws decorative holes and arranges source-image patches into text in a separate area. Decorative holes (`imageHoles`) and text samples (`donors`) are independent; text patches do not have to correspond to visible decorative holes.
 
-解码时使用 `createImageBitmap` 的图像方向信息；等比例绘入源 Canvas，后续始终从这份源图读取。预览与导出共用布局计划：图像尺寸、孔径、点距、文字坐标、取样坐标。
+Native-size rendering with edge shading disabled preserves decoded opaque pixels outside the holes. Edge shading affects pixels around each cut, and transparent pixels are composited against the paper color. Resizing, browser color management and discarded file metadata limit comparisons with the original image file.
 
-原画模式：绘制原图，然后在字模的活跃点上填入纸色。每个活跃点只有一个孔。
+## Pixel fonts
 
-图块拼字模式：原画散孔 `imageHoles` 与文字图块取样 `donors` 分别计算。散孔的密度、孔径、孔形与孔色独立于文字点阵；每个文字点从不可变原图取得一个图像块。散孔位置与文字取样位置不要求一致，因此这是一种图块拼字构图，不是对全部实际孔洞的逐片搬移。文字图块按文字点形状裁剪。
+`font.js` contains an original 5-by-7 alphabet for Latin letters, digits and punctuation. Classic Latin text is displayed in uppercase. Other supported characters and the Fusion option use the bundled 12-pixel [Fusion Pixel font](https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.09.25).
 
-关闭切边且原始尺寸渲染时，孔以外的非透明像素应与已解码原图逐像素相同。启用切边会修改孔边缘的一圈像素；透明部分与纸色合成。浏览器色彩管理和超大图的主动缩小会影响与原文件的字节级比较，不能把「保持原图」理解成保留原文件全部元数据。
+The font loads before glyph extraction. Glyphs render at integer coordinates with a baseline of 10 pixels; alpha values of at least 128 define active cells. Layout uses measured glyph advances and aligns mixed scripts by the tallest glyph in each line. A coverage table prevents silent system-font substitution or dropped characters. Input is normalized to NFC.
 
-参考：[Canvas 图像绘制规范](https://html.spec.whatwg.org/multipage/canvas.html#drawing-images-to-the-canvas)、[MDN drawImage](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage)。
+## Dot sizing and wrapping
 
-## 点阵字库
-
-`font.js` 提供项目原创的 5×7 英文、数字和标点规则。每个字模是 0/1 二维表，1 对应一个孔。经典模式将英文字母显示为大写。
-
-非经典字符和 Fusion 模式使用固定版本的 [Fusion Pixel](https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.09.25) 12px 简体中文单宽字库。字体本地随应用分发，先等待真实 `FontFace.load()` 完成，再以 12px、整数坐标、基线 y=10 渲染。alpha ≥128 的像素是活跃点，宽度采用实际字形 advance，中文字模高 12。与英文混排时按行的最大字模高度对齐。
-
-每个码点先检查来自固定字体的覆盖区间。未支持的 emoji 或特殊符号明确报错，不让系统字体静默替补，也不丢弃字符。
-
-## 孔径估计函数
-
-设原图尺寸为 W×H，字模活跃点数为 N，文字区域宽度比例为 r，孔间留白为 s。
+Let image dimensions be `W` by `H`, active-cell count be `N`, text-width fraction be `r`, and spacing fraction be `s`.
 
 ```text
-f = 1 − s                     # 孔径 / 点距；默认 f=0.68
-p = d / f                     # 点距
-d_cap = min(0.035W, sqrt(qWH/N))
-q = 0.07（原画文字）或 0.035（碎片拼字）
-文字区宽度 R = W；左右拼字时 R = 0.9W
-pad = 0.05R（拼字）；min(0.04W, 0.05H)（原画打字）
-文字可用宽度 A = min(rR, R − 2pad − 0.04R) # 默认 r=0.84
-自动目标文字高度 T = 0.32H（原画）、0.42H（上下）、0.7H（左右）
+fill fraction f = 1 - s                  # default: 0.68
+pitch p = diameter d / f
+maximum diameter = min(0.035W, sqrt(qWH/N))
+q = 0.07 for text on image; 0.035 for tile lettering
+text region width R = W; 0.9W for left/right tile lettering
+padding = min(0.04W, 0.05H) on image; 0.05R for tile lettering
+available width = min(rR, R - 2padding - 0.04R)
+r = 0.84 by default
+target height = 0.32H on image; 0.42H top/bottom; 0.70H left/right
 ```
 
-从小孔径到 d_cap 二分搜索，找到实际换行后高度不超过 T、单个字符可放入的最大值。每次都执行真实排版；不会只按字符数推测行数。文字大小不受装饰散孔数量限制。
+A binary search evaluates actual wrapped layouts to find the largest diameter that fits the target height and an individual glyph. Manual diameter is normalized to image width; the interface reports working-image pixels. These ratios are adjustable visual heuristics. Circular dots use the same diameter rule but cover approximately pi/4 of the square-dot area.
 
-这些比例是首版的审美与空间启发式，尚未经用户实验校准。q 为方孔面积估计；圆孔沿用同一孔径规则，实际被去除面积约为方孔的 π/4。
+Glyphs have a one-cell horizontal gap; lines have a three-cell vertical gap. A line containing `U` cells has width `(U - 1)p + d`. Latin text wraps at words where possible, while long words and Chinese text wrap between characters. Explicit line breaks remain, and automatic line boundaries trim spaces.
 
-手动孔径独立于自动估计，保留用户设定。滑块内部按图宽归一化，保证换图后孔径占图宽的比例一致；界面输出转换回当前工作图片的真实 px。
+Horizontal and vertical position specify the percentage of available free space before the entire text block, with defaults of 50% and 82%. Lines are centered within the block. Impossible text-on-image layouts report an error and disable export. Tile-lettering layouts grow the text area without resizing the source. Blank text produces an unpunched image.
 
-## 不挤压的换行
+## Composition and sampling
 
-字模之间保留 1 个点阵单元；行间保留 3 个单元。
+Automatic composition places portrait images on the left with text on the right; landscape and square images use image-above, text-below. Either direction can be selected manually.
 
-```text
-一行的字模单元数 U = Σ(字模宽度 + 1) − 1
-一行实际宽度 = (U − 1)p + d
-```
+Decorative-hole density is a target fraction of source area, from 0% to 12%, defaulting to 3.5%. Requested count is limited by non-overlapping grid capacity. Default image-hole diameter is `28W/1200`, shape is square, and color follows the paper until customized.
 
-英文优先按完整词换行，超长词按字符拆分；中文按字符换行。显式换行保留。每行单独居中。与自动换行有关的行首/行尾空格会被去除。
+Decorative holes and text samples use separate stratified grids and fixed seeds. Cells are at least `d + 0.25d` wide and high, shuffled, and offset within bounds. Each grid's patches stay within the source and do not overlap. When full-size text patches cannot fit, the planner reduces `sourceDiameter` and scales patches into the requested text dots, preserving the text's size, wrapping and active cells. Sampling is repeatable and does not use face detection or semantic segmentation.
 
-原画模式通过可用高度检查拒绝不可能布局，错误状态禁用导出。图块拼字模式允许文字区增高，不改变原图尺寸与比例，也不压缩字模。空文字或纯空白没有孔，输出完整原画。
+## Color selection
 
-文字按实际整块宽高定位：水平位置与垂直位置表示可用空余空间中的百分比，默认分别为 50% 与 82%。每行在同一文字块内居中；两个位置控件移动整个文字块。在两种分割方向中均有效。即使文字区域宽度取最大值，也保留横向余量。
+Automatic colors use a thumbnail with a longest side of at most 128 pixels. Samples convert from sRGB to linear sRGB and OKLab; alpha below 128 is ignored. Mid-lightness samples with chroma above 0.025 determine average hue. Nearly neutral images use a warm neutral hue.
 
-## 分割与原画散孔
+Light paper uses `OKLCH(L=0.95, C=0.025, h=image hue)`. Average OKLab lightness above 0.92 selects dark paper with `L=0.27` and `C=0.022`. Chroma is reduced until the result fits sRGB. Suggestions also include a light complementary color, warm white and same-hue dark paper. These colors are starting points rather than per-glyph contrast guarantees; OKLab lightness is not WCAG relative luminance.
 
-自动布局在 `W < H` 时使用左右分割，否则使用上下分割；也可手动覆盖。左右时原画在左、文字在右，上下时原画在上、文字在下。原画始终保留 W×H，文字区按文字高度扩大画布。
+`color.js` validates HEX/RGB and converts RGB/HSV. `palette.js` shares an in-page picker between paper and decorative-hole colors. Valid changes preview live; cancellation restores original colors and automatic-color flags. Invalid drafts leave the accepted color unchanged.
 
-界面的散孔密度为 0%–12%，默认 3.5%，表示原画被孔洞覆盖的目标面积比例。方孔面积为 d²，圆孔为 πd²/4。先按目标面积计算孔数，再限制到无重叠网格容量，因此达到容量上限时实际密度可能较低。密度 0 不影响图块文字。原画孔径默认按图宽归一化为 `28W/1200`，形状默认方孔，孔色默认跟随画布底色；自定义孔色后可恢复跟随。
+## Export and local state
 
-## 确定性取样
+PNG renders the working source at native or 2x size. SVG embeds its PNG with vector hole shapes and clipped, transformed image copies for text tiles. Hole coordinates retain four decimal places. Canvas and SVG anti-aliasing can differ.
 
-图块取样与装饰散孔都使用分层网格，分别用固定种子计算。令 g=0.25d，网格每格宽高必须至少 d+g。选择适合原图长宽比、能容纳 N 个点的 nx×ny 网格。洗牌后抽取 N 个不同格，每格只放一个取样块或散孔，位置在格内限幅偏移。
+Preview fit-to-window is 100%. Ctrl plus the wheel applies exponential zoom from 25% to 300%, normalizing pixel, line and page units. Sensitivity ranges from 0.2x to 2.5x. Preview zoom and original-image viewing do not change exports.
 
-若文字点太大而源图不能容纳全部独立取样块，二分减小 `sourceDiameter`，再把小块等比例放大到文字点内；保留文字孔径、换行与字模完整性。每个文字点仍有自己的源图取样块。散孔按容量限制数量，不沿用这些取样块的位置。
+`state.js` validates browser-local language, text, layout and preview settings with a seven-day expiration. It stores no images. Palette previews stay temporary until committed; corrupt records and unavailable storage fall back to a usable editor.
 
-每组网格内的块不会出界或相交，相同图片尺寸、文字和设置会复现排列。所有图块从未打孔的源图获取；当前没有人脸识别、显著性分割或语义避让。
+## References
 
-参考：[PBRT 的分层采样](https://www.pbr-book.org/4ed/Sampling_and_Reconstruction/Stratified_Sampler)。
-
-## 默认纸色
-
-将长边不超过 128 px 的原图缩略图从 sRGB 转为线性 sRGB，再转 OKLab。忽略 alpha <128 的样本。用中间明度、色度 >0.025 的样本 a/b 向量平均得到色相；接近无彩色时用暖中性色相。
-
-默认纸色为 `OKLCH(L=0.95, C=0.025, h=图像色相)`。如果平均 OKLab L>0.92，改用 `L=0.27, C=0.022` 的深纸色。超出 sRGB 色域时逐步降低 C。还提供互补浅色、暖白和同色相深色。
-
-同色相形成色彩关联，低色度减少与原图竞争。深浅选择增强整体辨识度，但没有逐点优化文字背景，也不是严格的可读性保证。OKLab 的 L 是感知明度，不是 WCAG 相对亮度，也不能直接当成对比率。
-
-参考：[W3C OKLab / OKLCH](https://www.w3.org/TR/css-color-4/#ok-lab)、[OKLab 作者的转换公式](https://bottosson.github.io/posts/oklab/)。
-
-## 导出
-
-PNG 根据同一计划从源图重新渲染；预览的屏幕缩放不参与导出。
-
-SVG 内嵌源 PNG，叠加孔色形状；图块用 clipPath 和对原图的平移/缩放取出，避免逐块编码。孔坐标保留四位小数。PNG 与 SVG 可因各渲染器的抗锯齿规则出现边缘差异。
-
-预览以适应视窗的尺寸作为 100%。Ctrl + 滚轮使用指数缩放，将滚轮的像素/行/页单位归一化，范围 25%–300%；灵敏度 0.2×–2.5×，默认 1.0×。事件只在预览区处理，并尽量保持鼠标下的图像位置。普通滚轮保留滚动行为；屏幕缩放不影响布局与导出。
+- [HTML Canvas image drawing](https://html.spec.whatwg.org/multipage/canvas.html#drawing-images-to-the-canvas)
+- [Stratified sampling in PBRT](https://www.pbr-book.org/4ed/Sampling_and_Reconstruction/Stratified_Sampler)
+- [W3C OKLab and OKLCH](https://www.w3.org/TR/css-color-4/#ok-lab)
+- [OKLab conversion formulas](https://bottosson.github.io/posts/oklab/)

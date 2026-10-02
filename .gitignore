@@ -4,3 +4,4 @@ punch-studio/tests/artifacts/
 *.tar.gz
 .env
 .env.*
+.venv/

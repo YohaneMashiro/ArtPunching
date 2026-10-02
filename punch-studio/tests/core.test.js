@@ -43,9 +43,9 @@ test('manual larger holes increase actual line count without compressing pitch',
 });
 
 test('oversized manual type fails visibly instead of hiding or overlapping glyphs',()=>{
-  assert.throws(()=>createPlan(1200,200,glyphs('ART '.repeat(30)),{...defaults,autoSize:false,holeSize:30}),/原画高度不足/);
-  const wideGlyph={char:'中',width:12,height:12,points:[{x:0,y:0}]};
-  assert.throws(()=>createPlan(1200,960,[wideGlyph],{...defaults,areaWidth:35,autoSize:false,holeSize:60}),/单个字符/);
+  assert.throws(()=>createPlan(1200,200,glyphs('ART '.repeat(30)),{...defaults,autoSize:false,holeSize:30}),/\u539f\u753b\u9ad8\u5ea6\u4e0d\u8db3/);
+  const wideGlyph={char:'\u4e2d',width:12,height:12,points:[{x:0,y:0}]};
+  assert.throws(()=>createPlan(1200,960,[wideGlyph],{...defaults,areaWidth:35,autoSize:false,holeSize:60}),/\u5355\u4e2a\u5b57\u7b26/);
 });
 
 test('donor grid is deterministic, in bounds, and has no intersecting square holes',()=>{
@@ -55,7 +55,7 @@ test('donor grid is deterministic, in bounds, and has no intersecting square hol
     const p=points[i];assert.ok(p.x>=0&&p.y>=0&&p.x+d<=1280&&p.y+d<=960);
     for(let j=i+1;j<points.length;j++){const q=points[j];assert.ok(Math.abs(p.x-q.x)>=d||Math.abs(p.y-q.y)>=d);}
   }
-  assert.throws(()=>donorGrid(200,100,100,20),/无法容纳/);
+  assert.throws(()=>donorGrid(200,100,100,20),/\u65e0\u6cd5\u5bb9\u7eb3/);
 });
 
 test('transfer has one immutable source patch for each text cell and a growing caption',()=>{

@@ -1,47 +1,42 @@
-# 发布与部署
+# Deployment
 
-源码仓库：[YohaneMashiro/ArtPunching](https://github.com/YohaneMashiro/ArtPunching)。线上页面：[Alive · 打孔艺术工作室](https://yohanemashiro.github.io/ArtPunching/)。2026-10-02 已完成授权、推送、启用 GitHub Pages、成功运行发布工作流，并验证线上资源和浏览器功能。提交使用邮箱 `ylpwannzdm@126.com`。
+ArtPunching is static. Publish the contents of `punch-studio/dist/`; there is no build step, backend or image-upload service. Relative asset paths support hosting below a repository subdirectory.
 
-应用无后端，整个 `punch-studio/dist/` 可以直接作为静态站点发布。所有地址为相对地址，能放在 GitHub Pages 的仓库子路径。
+The public instance is [ArtPunching on GitHub Pages](https://yohanemashiro.github.io/ArtPunching/).
 
-## GitHub 与 Pages
+## GitHub Pages
 
-`.github/workflows/pages.yml` 在推送 `main` 时或手动触发时执行：运行算法测试，将 `punch-studio/dist` 打包为 Pages artifact，再发布到 `github-pages` 环境。应用无需构建；测试失败会停止发布。
+`.github/workflows/pages.yml` runs on pushes to `main` and manual dispatch. It runs unit tests, packages the static directory and deploys to the `github-pages` environment.
 
-重新部署或迁移仓库时的步骤：
+For another repository:
 
-1. 在本机完成 GitHub 登录，所用账号需有目标仓库的写入和 Pages 设置权限；无需把密钥发到聊天或写入项目。
-2. 将项目推送到目标仓库的 `main`。
-3. 在仓库 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。
-4. 在 **Actions** 检查工作流，必要时手动运行。成功后访问线上页面，核对上传、字库、缩放与导出。当前仓库的初次部署已完成，无需重复设置。
+1. Enable GitHub Actions.
+2. In **Settings > Pages > Build and deployment**, select **GitHub Actions**.
+3. Push to `main` or run the publishing workflow manually.
+4. Open the deployment URL after the workflow succeeds.
 
-工作流使用平台提供的 `GITHUB_TOKEN` 与 `pages: write`、`id-token: write` 权限，无需另外创建部署 secret。步骤与权限依据 [GitHub Pages 自定义工作流文档](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。静态文件使用相对路径，兼容 `/ArtPunching/` 子路径。
+The workflow uses GitHub's automatic token with `contents: read`, `pages: write` and `id-token: write`. No additional deployment secret is needed. See [GitHub's custom Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
-随发布保留字体 `OFL.txt` 与 `LICENSES/` 全部上游声明；素材来源见 [许可说明](licenses.md)。GitHub Pages 仅提供应用文件，编辑时不会接收用户上传的图片。
+## Other static hosts
 
-## VPS
-
-VPS 只需静态 HTTP 服务；图片无需经过 VPS，服务器负载主要为首次加载应用和本地字库。
-
-例如将 `dist` 内容复制到 `/var/www/alive-punch`，Nginx server 配置的核心是：
+Upload `punch-studio/dist/` to a static host or serve it with a web server. An Nginx example:
 
 ```nginx
 server {
     listen 80;
-    server_name YOUR_DOMAIN;
-    root /var/www/alive-punch;
+    server_name example.com;
+    root /var/www/artpunching;
     index index.html;
-
     location / {
         try_files $uri $uri/ =404;
     }
 }
 ```
 
-`YOUR_DOMAIN` 为待填写占位符。域名、SSH 访问方式和目标目录确认后再实施。生产环境配置 HTTPS。此工具不需要数据库、图片上传服务、API key 或常驻 Node 进程。
+Replace the domain and directory, and configure HTTPS for public access. Serve JavaScript and font assets with their normal MIME types. No database, application server or API key is required. Keep bundled font notices and artwork attribution; see [asset licenses](licenses.md).
 
-## 本地访问
+## Deployment checks
 
-默认本地测试服务在 WSL 启动，Windows 浏览器访问 `http://localhost:4173/`。示例命令绑定 `0.0.0.0`，兼容 WSL 的 localhost 转发；服务是否可从局域网访问取决于 Windows 防火墙和 WSL 网络配置。
+Verify font loading, image upload, both compositions, the color palette and PNG/SVG downloads. Select a language and reload to check saved settings. Uploaded images need to be selected again after reload.
 
-若仅在 WSL 内访问，可改为 `--bind 127.0.0.1`。不用更改 Codex 的 WSL 执行环境。停止服务可在启动窗口按 Ctrl+C。
+Saved settings belong to the browser origin. A new domain or cleared site data starts a new local record.

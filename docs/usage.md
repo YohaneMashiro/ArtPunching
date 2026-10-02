@@ -1,82 +1,83 @@
-# 使用说明
+# Usage
 
-## 最小流程
+## Create artwork
 
-1. 打开页面；页面先加载用户提供的原画作为示例。
-2. 在「选择原画」区域点击或拖入 PNG、JPG、WebP。
-3. 输入名字或短句。中文、英文与字库内标点均可；Enter 保留手动换行。
-4. 预览实时更新。点击右上角「导出作品」，在同一窗口选择原始或 2 倍 PNG，或下载 SVG。页面仅保留这一个导出入口。
+1. Open the editor. It initially loads the sample artwork.
+2. Click the image area or drag in a PNG, JPEG or WebP file.
+3. Enter a name or short phrase. English, Chinese and punctuation within the bundled font coverage are supported. Enter inserts a line break.
+4. Adjust the live preview. Use **Export artwork** in the top-right corner to choose original-size PNG, 2x PNG or SVG.
 
-图片读取、字模提取、配色、排版、预览和导出都在浏览器内运行。文字和设置可在当前浏览器自动恢复；图片文件不保存，也不上传到服务器。刷新后会显示示例原画，自己的原画需重新选择。
+Image processing and exports run in the browser. The editor remembers text and settings locally, but does not retain image files or upload them. Reloading restores the settings over the sample artwork; select a custom image again to continue using it.
 
-界面语言可选择「中文 / English」，首次访问或已保存设置过期时默认中文。语言选择会随设置保存；切换语言不改变输入的文字或作品设置。
+The interface supports Chinese and English. First use and expired settings default to Chinese. Changing the interface language preserves the artwork text and settings.
 
-使用默认示例时，页面显示原画作者 [十二時](https://xhslink.cn/o/75GwJDczjxb) 的署名与来源链接；上传自己的图片后不显示示例作者署名。署名不代表素材已获得开放许可，详见 [素材许可说明](licenses.md)。
+The default artwork is attributed to [ShiErShi](https://xhslink.cn/o/75GwJDczjxb). Its attribution is shown while the sample is selected. See [Asset licenses](licenses.md) for font and artwork notices.
 
-## 两种效果
+## Composition styles
 
-**在原画上打字（默认）**：孔洞排列成文字，露出同一底色，原画尺寸与比例保持不变。
+**Text on image** is the default. Holes form the text and reveal the paper color. The original image dimensions and aspect ratio remain unchanged.
 
-**图块拼字**：原画保留散孔效果，旁边用原画中取样的图像块排列文字。散孔与文字图块独立，可以单独调节原画区。选择「自动 / 上下 / 左右」布局；自动对竖画采用左右，对横画或方画采用上下。原画尺寸与比例保持不变，文字区按需要增高。
+**Image tile lettering** places text made from sampled image tiles beside the image. Decorative image holes and text tiles are controlled independently. Layout options are **Auto**, **Top / bottom** and **Left / right**. Automatic layout puts text beside portrait images and below landscape or square images. The original image keeps its dimensions; the composition expands to accommodate the lettering.
 
-「作品 / 原画」只切换预览。导出始终导出完整作品；在「原画」预览时也如此。
+The **Artwork / Original** switch affects only the preview. Exports always contain the complete artwork, including when the original image is being previewed.
 
-在作品预览区按住 **Ctrl + 滚轮**，可在 25%–300% 之间缩放；普通滚轮用于滚动放大的作品。右下角也有缩放滑块，点击「灵敏度」可调节 0.2×–2.5×，默认 1.0×。100% 表示适应预览区，缩放不改变作品像素与导出尺寸。
+Hold **Ctrl + wheel** over the artwork to zoom between 25% and 300%. Ordinary scrolling moves through an enlarged preview. The bottom-right zoom slider provides the same range, and **Sensitivity** adjusts wheel response from 0.2x to 2.5x, with a default of 1.0x. A zoom of 100% fits the artwork to the preview area. Preview zoom does not affect exported dimensions.
 
-## 进阶控件
+## Controls
 
-设置按「文字与排版」「原画散孔」「背景与细节」折叠，散孔面板只在图块拼字模式显示。
+Settings are grouped under **Text & layout**, **Image holes** and **Paper & details**. The image-hole panel is available in image tile lettering mode.
 
-| 控件 | 作用 |
+| Control | Behavior |
 | --- | --- |
-| 智能配色 | 根据原画的 OKLab 平均色相产生低饱和纸色；原画极浅时选深纸色 |
-| 底色调色板 / HEX / 推荐色 | 选择画布底色；原画打字模式的孔洞使用此颜色 |
-| 自动估算 | 根据图像面积、字模点数、文字区域、孔间距选择孔径 |
-| 点阵大小 | 手动调节文字点大小并退出自动估算；右侧显示工作图像内真实孔径，单位 px |
-| 文字点形状 | 独立选择文字的方形 / 圆形点 |
-| 点阵留白 | 调整文字点之间的空隙；留白越大，点距越大 |
-| 水平 / 垂直位置 | 在原画或独立文字区移动整个文字块；默认 50% / 82% |
-| 文字区域宽度 | 限定可用于排字的宽度，缩窄后自动换行 |
-| 点阵字库 | 默认英文 5×7、中文 Fusion 12×12；Fusion 模式英文保留大小写 |
-| 轻微纸张切边 | 添加细边模拟切口；关闭后只修改孔内像素 |
-| 原画打孔密度 | 0%–12%，默认 3.5%；表示目标孔洞面积比例，受无重叠容量限制 |
-| 原画孔径 / 孔形 | 调整原画散孔的大小和方孔 / 圆孔，不改变文字点阵 |
-| 原画孔色 / 跟随底色 | 自定义散孔颜色；点击「跟随底色」恢复与画布同色 |
-| 恢复默认设置 | 恢复排版、配色、散孔、缩放与灵敏度；保留图片、文字和当前打孔模式 |
+| Auto color | Derives a low-saturation paper color from the image's average OKLab hue; nearly white images use dark paper |
+| Paper palette / HEX / suggested colors | Sets the paper color and the holes in text-on-image mode |
+| Auto size | Estimates dot size from the image area, glyphs, text region and spacing |
+| Dot size | Sets text dot size manually; the adjacent value shows the actual working-image diameter in pixels |
+| Text dot shape | Chooses square or circular text dots |
+| Space between dots | Adjusts the gaps between text dots; more space increases dot pitch |
+| Horizontal / vertical position | Moves the text block within the image or caption region; defaults to 50% / 82% |
+| Text area width | Limits the width available to text and controls automatic wrapping |
+| Pixel font | Uses classic 5x7 English and Fusion 12x12 Chinese by default; Fusion mode preserves English letter case |
+| Subtle cut-paper edges | Adds a narrow edge to simulate a cut; disabling it limits pixel changes to the holes |
+| Hole density | Sets decorative image-hole density from 0% to 12%, default 3.5%; this is a target area fraction subject to non-overlap capacity |
+| Image hole size / shape | Changes decorative image holes independently of the text dots |
+| Image hole color / Use paper color | Sets a custom image-hole color or links it to the paper color |
+| Reset settings | Restores layout, colors, image holes, zoom and sensitivity while keeping the image, text and composition style |
 
-经典英文模式把小写字母显示为大写点阵。中文使用原生像素字体，常见汉字在 12×12 单元内；部分符号宽度不同，按实际字模处理。
+Classic English lettering displays lowercase letters as uppercase glyphs. Chinese uses native pixel glyphs, typically within a 12x12 cell. Symbols with different dimensions are laid out using their actual glyph size.
 
-## 统一调色板
+## Color palette
 
-画布底色与原画孔色使用同一套网页控件，不调用手机或电脑的系统颜色选择器。可以直接在设置栏填写 HEX，也可以点击「调色板」进行调整。
+Paper and image-hole colors share the same web palette across devices. Enter a HEX code directly in the settings panel, or open **Palette** for more controls.
 
-- HEX 接受 3 位或 6 位代码，可省略 `#`，例如 `ABC`、`#abc` 或 `#AABBCC`；确认后统一显示为 6 位代码。
-- 调色板提供独立的 R、G、B 输入框，每个值为 0–255 的整数，与 HEX 同步。
-- 拖动色相滑块选择色相，在色块上点击或拖动调整饱和度与明度；支持鼠标和触摸。色块获得焦点后，左右方向键调整饱和度，上下方向键调整明度，按住 Shift 使用更大的步长。
-- 颜色实时显示在作品预览中。点击「完成」或在有效输入时按 Enter 保留修改；「取消」、右上角 ×、Esc 或点击弹窗外侧会恢复打开前的颜色，以及「智能配色」「跟随底色」状态。
-- 无效 HEX 或不完整、越界的 RGB 会显示提示，并保留上一个有效颜色；弹窗的「完成」按钮在输入修正前不可用。
+- HEX accepts three or six digits, with an optional `#`: for example `ABC`, `#abc` or `#AABBCC`. Accepted values normalize to six digits.
+- Separate R, G and B fields accept integers from 0 to 255 and stay synchronized with HEX.
+- Move the hue slider, then click or drag the color field to adjust saturation and brightness. Mouse and touch input are supported. With the field focused, left/right arrow keys adjust saturation and up/down keys adjust brightness. Hold Shift for larger steps.
+- Edits update the artwork preview immediately. **Done**, or Enter with valid input, keeps the changes. **Cancel**, the close button, Escape or a click outside the dialog restores the previous colors, automatic-color setting and paper-color link.
+- Invalid HEX and incomplete or out-of-range RGB inputs display an error while retaining the last valid color. **Done** is disabled until the input is corrected.
 
-## 自动保留设置
+## Saved settings
 
-语言、文字、全部作品参数，以及预览缩放、滚轮灵敏度、「作品 / 原画」预览和导出倍率，都会保存在当前浏览器。保存期限从最后一次操作起计算，为 7 天；刷新页面或重新打开网站时会恢复。首次访问、保存已过期或清除浏览器站点数据后使用默认设置，界面为中文。
+The editor stores language, text, artwork settings, preview zoom, wheel sensitivity, the original/artwork preview choice and export scale in the current browser. Records expire seven days after the last setting change. Reloading or reopening the page restores a valid record. First use, expiry or clearing site data returns to the defaults with a Chinese interface.
 
-图片文件不进入保存记录。重新打开时先显示示例原画，并沿用已保存的文字与设置；使用自己的原画需要重新选择图片。调色板中尚未点击「完成」的颜色预览也不会成为已保存的颜色。
+Images are excluded from the saved record. Reopening loads the sample artwork with the saved text and settings; custom images must be selected again. Unconfirmed palette previews are not saved as committed colors.
 
-若浏览器禁用存储或空间不足，页面会提示无法保留设置，仍可正常编辑和导出；当前会话的修改会在关闭或刷新后丢失。设置只保留在当前浏览器，不会在设备之间同步。
+If browser storage is blocked or full, the editor displays a note and remains usable for editing and export. Changes that cannot be saved are lost on reload or closing the page. Settings do not synchronize between browsers or devices.
 
-## 空间不足
+## Insufficient space
 
-放大孔时，点距随之增大，文字会按词或字符换行。原画模式空间有限，若所有行放不下，会停止导出并显示原因，保留上一幅有效预览并标明「预览未更新」。可以减小孔径、缩短文字、增加区域宽度或切到碎片模式。
+Larger holes increase dot pitch and cause text to wrap by word or character. Text-on-image mode has a fixed area. If all lines cannot fit, export is disabled and the previous valid preview remains visible with a message that the preview was not updated. Reduce the dot size, shorten the text, increase the text area width or select image tile lettering.
 
-图块拼字模式按需增加文字区高度。当大文字点超过源图取样容量时，会从原画取较小的独立图块并放大到点阵内，不压缩文字、不丢字；装饰散孔数量独立按容量限制。文字点过大、连单个字符都放不下时仍需减小孔径或增加区域宽度。
+Image tile lettering expands its caption region as needed. When large text dots exceed source sampling capacity, smaller independent image patches are sampled and scaled into the requested dots. Text spacing and glyphs are preserved, while decorative image holes remain subject to their own capacity limits. If even one character cannot fit across the available width, reduce dot size or increase text area width.
 
-## 图像与导出限制
+## Image and export limits
 
-- 工作图像最大边长 6000 px、面积 1600 万像素；更大原画按比例缩小并显示提示。
-- 工作构图最大 3200 万像素、任一边不超过 16384 px；超限时要求调整设置。
-- PNG 导出最大 4800 万像素、任一边不超过 16384 px。超大的 2 倍导出选项会提示使用原始尺寸。
-- 原始 PNG 从工作原图重新绘制，不使用缩放后的屏幕截图。2 倍导出让孔边更平滑，不增加原图本来没有的细节。
-- SVG 内嵌工作原图，无外部图片或字体依赖。孔边是矢量形状，原画仍是栅格图。
-- 浏览器 Canvas 使用浏览器的颜色管理；带透明度的原图会与所选纸色合成。该工具不改变原画风格，不进行生成式重绘。
+- Input images may be PNG, JPEG or WebP, up to 30 MB. Text supports up to 120 characters within the bundled font coverage.
+- Working images are limited to a 6000 px longest edge and 16 million pixels. Larger images are resized proportionally with a visible notice.
+- Compositions are limited to 32 million pixels and 16384 px on either axis. Exceeding these limits requires a settings adjustment.
+- PNG exports are limited to 48 million pixels and 16384 px on either axis. Oversized 2x exports require original-size output or a smaller composition.
+- Original-size PNG is redrawn from the working image, rather than captured from the preview. A 2x export smooths hole edges without adding detail absent from the original image.
+- SVG embeds the working image and requires no external images or fonts. Hole edges are vector shapes; the image itself remains raster data.
+- Canvas uses the browser's color management. Transparent image pixels are composited over the selected paper color. The editor does not apply generative redraws.
 
-照片、很细的线稿或花纹密集区域可能影响文字辨识。可尝试更深/更浅底色、方孔、较小留白，或将文字移到较简单的图像区域。智能配色是审美启发式，不保证每幅图的每个文字位置都有高对比度。
+Photographs, fine line work and busy image regions can make lettering harder to read. Adjust paper contrast, hole shape or spacing, or position the text over a simpler region. Automatic paper color is an aesthetic heuristic and does not guarantee contrast at every text position.

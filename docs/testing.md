@@ -1,107 +1,52 @@
-# 本地测试与验收
+# Testing
 
-验证日期：2026-10-02。全部在 WSL 中执行，没有改变 Codex 的 WSL 运行设置。此次验证覆盖统一网页调色板、7 天设置记忆、双轴定位、独立原画散孔、分割方向、Ctrl 滚轮缩放、中英界面与示例署名；GitHub Pages 已成功发布并完成线上检查。
+The test suites cover layout geometry, color conversion, saved settings and browser interactions. Browser tests verify rendered pixels and downloaded files as well as control values.
 
-## 结果
+## Unit tests
 
-31 项单元测试（16 项几何、5 项颜色、10 项保存状态）全部通过。浏览器检查共 61 项：基础 17 项、全面控件 20 项、双语与署名 10 项、调色板 8 项、设置保存 6 项。全面检查覆盖页面中发现的全部 57 个交互元素（包括二维颜色滑块）及拖放上传，核对实际画布像素、下载文件和 SVG 坐标。浏览器检查使用真实 Chromium；可选接口通过 WebMCP shim 验证状态行为，原生标准的宿主集成未验证。
-
-| 范围 | 结果 |
-| --- | --- |
-| 两种模式、示例加载、真实字库加载 | 通过 |
-| 中文、全角空格、NFC 组合音标 | 通过 |
-| 未支持字符、超字数、无效预览与导出保护 | 通过 |
-| 手动增大孔径带来真实换行 | 通过，1 行变为 2 行 |
-| 原画高度不足 | 明确报错，不压缩、不裁掉文字 |
-| 横图、竖图、极端长宽比、空白文字 | 通过 |
-| 取样可复现、孔不相交、不出界 | 通过 |
-| 每个碎片对应一个源孔 | 通过 |
-| 原始 PNG / 2 倍 PNG | 1280×960 / 2560×1920 |
-| SVG 内嵌图片与实际 SVG 解码 | 通过 |
-| 原画预览不影响导出的作品 | 通过 |
-| 圆孔、自定义底色、文件上传 | 通过 |
-| 图片上传与字体初始化竞争 | 用户图片不会被后来到达的示例覆盖 |
-| 手机 390×844 | 中文生成正常、无页面横向溢出 |
-| 浏览器网络与异常 | 仅请求本地资源，无页面脚本异常 |
-| 文字水平 / 垂直位置 | 原画模式、上下拼字、左右拼字均真正移动；PNG 预览与 SVG 下载坐标一致 |
-| 位置滑块实际移动距离 | 原画 X577/Y475 px；上下拼字 X556/Y143 px；左右拼字 X484/Y463 px |
-| 独立原画密度、孔径、孔色、孔形、跟随底色 | 改变原画区，文字区像素哈希全部保持一致 |
-| 上下 / 左右 / 自动分割 | 手动切换改变画布；竖画自动左右、横画自动上下，原画不变形 |
-| Ctrl 滚轮与灵敏度 | 0.2× 与 2.5× 同样滚动分别得到 104% 与 157% 缩放；普通滚轮不缩放 |
-| 浏览器缩放 / 导出稳定性 | 浏览器 viewport scale 始终 1；Ctrl 预览缩放前后 SVG 字节完全一致 |
-| 预览极值 / 手机左右布局 | 25–300% 可用；手机 300% 预览不会造成页面横向溢出，画布内可滚动 |
-| 所有按钮、折叠区、色块、恢复默认、右上角唯一导出入口、关闭对话框 | 全部覆盖并通过 |
-| 默认语言 / 中英切换 | 首次访问或记录过期后默认中文；切换保留文字、设置、作品像素、缩放与灵敏度，刷新恢复已选语言 |
-| 英文文案 / 无障碍标签 / 错误 / 导出 | 静态及动态文案、提示、控件说明、错误与下载完成信息全部覆盖 |
-| 读取图片期间切换语言 | 立即翻译加载状态与上一张预览的统计信息；读取完成保留用户文件名 |
-| 示例原画署名 | 十二時与提供的来源链接一致；上传后隐藏，重新使用示例时恢复 |
-| 英文手机 320 / 390 px | 两种布局与高级设置无页面横向溢出、无脚本异常 |
-| 统一网页调色板 | 页面无系统颜色输入控件；底色与散孔共用 HEX / RGB / HSV 面板 |
-| HEX / RGB 输入 | 3 / 6 位 HEX（可省略 #）、0–255 整数 RGB 联动；无效草稿保留，不改变已接受的颜色 |
-| 调色预览 / 取消 | 实时预览；取消、关闭、Escape、外侧点击恢复颜色与智能 / 跟随状态；完成提交 |
-| 触控 / 键盘选色 | Android 手机触控模拟中的拖动、指针捕获、方向键 / Shift 均改变真实颜色 |
-| 调色导出 | PNG 孔色像素与 SVG 颜色与选色一致；原画散孔调色不改变文字区 |
-| 设置保存 / 过期 | 刷新与同浏览器新页面恢复语言、文字、配色、排版、缩放、灵敏度、预览模式和导出倍数；最后交互 7 天后过期 |
-| 保存边界 / 异常 | 调色临时预览不保存；取消恢复原值；损坏、过期、非法字段安全回退；私密 / 配额受限仍可编辑 |
-| 图片保存范围 | 保存记录不含图片；刷新回到示例，上传图片需重新选择 |
-
-## 高保真证据
-
-使用 256×192 的不透明 RGB 渐变图，关闭切边，按照原始尺寸生成。排除孔边抗锯齿附近像素后，核对 47,901 个非孔像素，RGBA 不一致数为 **0**。
-
-另核对拼字模式的 47 个文字块与 47 个源取样位置：块中心与对应源位置颜色一致；这些取样位置与独立调节的原画装饰孔无数量对应要求。实际解码导出的 SVG 后，块中心与 PNG 的 RGB 差异均在抗锯齿容差 2/255 内。孔边的不同渲染器抗锯齿不要求字节完全一致。
-
-这验证当前渲染路径与几何关系；不等于所有原画都经过审美或文字识别测试。颜色与孔径的默认估计仍属于可调的启发式。
-
-## 线上发布检查
-
-[线上页面](https://yohanemashiro.github.io/ArtPunching/) 返回 HTTP 200；首页、app.js、core.js、i18n.js、color.js、palette.js、state.js、style.css 的 SHA-256 与本地已验证版本一致。真实 Chromium 中确认网页调色板、英文选择后刷新恢复设置、示例署名与唯一顶部导出入口；页面无脚本异常。发布前的 57 个交互元素检查均通过。
-
-## 复现单元测试
-
-在 WSL 的 `punch-studio` 目录使用 Linux Node：
+Use Node.js 22 or later; no application dependencies are required.
 
 ```bash
+cd punch-studio
 node --test tests/*.test.js
 ```
 
-应用本身不需要 Node。此次算法验证使用 Node 22.23.3 临时 Linux 运行时，没有安装应用依赖或改动 Windows 的 Node 配置。
+Tests cover wrapping, positioning, sampling bounds, PNG/SVG geometry, HEX/RGB validation, HSV round trips, setting validation, expiration and storage failures. The publishing workflow runs these tests before deployment.
 
-## 复现浏览器检查
+## Browser tests
 
-先在项目根目录执行 `./start-local.sh`。另开 WSL 窗口，在 `punch-studio` 目录准备隔离的 QA 环境：
+Start a server from the repository root:
 
 ```bash
-python3 -m venv /tmp/punch-qa
-/tmp/punch-qa/bin/pip install playwright==1.63.0
-/tmp/punch-qa/bin/python -m playwright install chromium
-/tmp/punch-qa/bin/python tests/browser_smoke.py
-/tmp/punch-qa/bin/python tests/control_audit.py
-/tmp/punch-qa/bin/python tests/i18n_smoke.py
-/tmp/punch-qa/bin/python tests/palette_smoke.py
-/tmp/punch-qa/bin/python tests/state_smoke.py
+python3 -m http.server 4173 --directory punch-studio/dist
 ```
 
-Linux 浏览器需要系统图形库；此次环境缺少 `libasound.so.2`，测试时将 Ubuntu 的 `libasound2t64` 解包到临时目录并通过 `LD_LIBRARY_PATH` 使用，没有切换 Windows 执行环境。屏幕截图使用 Windows 本地 UI 字体供浏览器显示中文，这些商业字体未加入网页或项目分发。
+In another terminal, prepare Playwright and Chromium:
 
-此次运行结果和示例导出保存在 `punch-studio/tests/artifacts/`：
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install playwright==1.63.0
+python -m playwright install --with-deps chromium
+python punch-studio/tests/browser_smoke.py
+python punch-studio/tests/control_audit.py
+python punch-studio/tests/i18n_smoke.py
+python punch-studio/tests/palette_smoke.py
+python punch-studio/tests/state_smoke.py
+```
 
-- `browser-results.json`：检查记录
-- `studio-desktop.png` / `studio-mobile.png`：桌面和手机截图
-- `punch.png` / `punch-2x.png` / `punch.svg`：原画文字导出
-- `transfer.png` / `transfer.svg`：碎片拼字导出
-- `control-audit/results.json`：20 项控件验收与全部 57 项覆盖清单
-- `control-audit/*.svg`：位置滑块改变导出坐标的证据
-- `control-audit/mobile-horizontal.png`：手机左右拼字布局
-- `i18n/results.json`：10 项双语、署名与读取竞争检查
-- `i18n/english-desktop.png` / `i18n/english-mobile-*.png`：英文桌面与手机截图
-- `i18n/english-2x.png` / `i18n/english.svg`：英文界面实际下载文件
-- `palette/results.json` / `palette/touch-palette.png`：8 项调色验收及触控截图
-- `palette/palette.png` / `palette/palette.svg`：调色后的实际导出
-- `state/results.json`：6 项浏览器缓存、过期与异常验收
+On Windows, activate with `.venv/Scripts/activate` in a compatible shell or use the environment's activation script for your shell. Linux browser dependencies may need administrator privileges. Python and Playwright are test tools; the application runs as static files.
 
-这些生成物已在项目 `.gitignore` 中忽略。浏览器检查默认访问 `http://localhost:4173/`，可用 `PUNCH_TEST_URL` 环境变量替换。
+Suites check image upload, fonts, text placement, both compositions, independent decorative holes, zoom, palette input and cancellation, touch interactions, languages, setting restoration and export. The control audit compares its coverage list with the page's interactive-element inventory.
 
-## 尚未覆盖
+Set `PUNCH_TEST_URL` to test another local or deployed instance. Suites use isolated browser contexts. Generated screenshots, results and downloads are stored in `punch-studio/tests/artifacts/`, which is excluded from version control.
 
-手机触控使用 Chromium 模拟，尚未进行真实 Android/iOS 设备、Firefox/Safari、iPhone 内存压力、广色域原图、实体纸张打孔或用户识读实验。当前浏览器预算明确限制极大画布，不承诺无限长文字。高频图案、很小孔径的精细纹理会受到浏览器重采样影响。
+## Fidelity checks
+
+The browser smoke test uses an opaque synthetic gradient, disables edge shading and renders at native size. Pixels outside hole edges must match the decoded source. It also compares tile centers with source samples and decodes PNG/SVG output to verify dimensions and colors.
+
+Palette tests verify that HEX, RGB and HSV produce matching rendered and exported colors. State tests check that temporary palette previews are not saved, including when navigation flushes pending settings.
+
+## Coverage limits
+
+Automation currently uses Chromium with mobile viewport and touch emulation. Physical Android/iOS devices and Firefox/Safari require separate testing. Color management and anti-aliasing can vary; wide-gamut images, memory pressure and physical paper cutting are outside automated coverage.

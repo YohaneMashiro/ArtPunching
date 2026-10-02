@@ -13,7 +13,7 @@ BASE = os.environ.get('PUNCH_TEST_URL', 'http://localhost:4173/')
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'tests' / 'artifacts' / 'i18n'
 OUT.mkdir(parents=True, exist_ok=True)
-AUTHOR = '十二時'
+AUTHOR = '\u5341\u4e8c\u6642'
 AUTHOR_URL = 'https://xhslink.cn/o/75GwJDczjxb'
 CJK = re.compile(r'[\u3400-\u9fff]')
 results = []
@@ -148,7 +148,7 @@ with sync_playwright() as p:
     ready(page)
     for selector in ['#text-settings', '#image-settings', '#paper-settings', '#sensitivity-settings']:
         open_details(page, selector)
-    fill(page, '#letters', '绿野 ART\nCafé')
+    fill(page, '#letters', '\u7eff\u91ce ART\nCafé')
     fill(page, '#paper-color', '#d8eff0')
     fill(page, '#image-color', '#eeeecc')
     fill(page, '#image-density', '6')
@@ -170,7 +170,7 @@ with sync_playwright() as p:
     record('English static, dynamic, accessibility, placeholders and tooltips / editor state preserved')
 
     # An uploaded user filename remains untouched in both languages.
-    custom_name = '我的原画.png'
+    custom_name = '\u6211\u7684\u539f\u753b.png'
     page.locator('#image-file').set_input_files({'name': custom_name, 'mimeType': 'image/png', 'buffer': (ROOT / 'dist' / 'assets' / 'sample.png').read_bytes()})
     page.wait_for_function("n=>document.getElementById('image-name').textContent===n", arg=custom_name)
     ready(page)
@@ -225,7 +225,7 @@ with sync_playwright() as p:
         return window.__originalImageBitmap.apply(window,args);
       };
     }''')
-    held_name = '切换中的原画.png'
+    held_name = '\u5207\u6362\u4e2d\u7684\u539f\u753b.png'
     page.locator('#image-file').set_input_files({'name': held_name, 'mimeType': 'image/png', 'buffer': (ROOT / 'dist' / 'assets' / 'sample.png').read_bytes()})
     page.wait_for_function('window.__decodeReached')
     assert page.locator('#export-top').is_disabled()

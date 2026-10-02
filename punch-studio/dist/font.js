@@ -69,7 +69,7 @@ export class PixelLibrary {
   async load(){
     const [font,coverage]=await Promise.all([
       new FontFace('PunchFusion','url(./assets/fusion-pixel-12px-monospaced-zh_hans.woff2)').load(),
-      fetch('./assets/font-coverage.json').then(r=>{if(!r.ok)throw new Error('字库字符表无法读取');return r.json();})
+      fetch('./assets/font-coverage.json').then(r=>{if(!r.ok)throw new Error('\u5b57\u5e93\u5b57\u7b26\u8868\u65e0\u6cd5\u8bfb\u53d6');return r.json();})
     ]);
     document.fonts.add(font);
     this.ranges=Array.isArray(coverage)?coverage:coverage.ranges;
@@ -87,21 +87,21 @@ export class PixelLibrary {
     let glyph;
     if(rows)glyph=bitmapGlyph(char,rows);
     else {
-      if(!this.ready)throw new Error('点阵字库尚未加载，请稍候。');
-      if(!this.supports(char))throw new Error(`字库暂不支持「${char}」，请替换这个字符。`);
+      if(!this.ready)throw new Error('\u70b9\u9635\u5b57\u5e93\u5c1a\u672a\u52a0\u8f7d\uff0c\u8bf7\u7a0d\u5019\u3002');
+      if(!this.supports(char))throw new Error(`\u5b57\u5e93\u6682\u4e0d\u652f\u6301\u300c${char}\u300d\uff0c\u8bf7\u66ff\u6362\u8fd9\u4e2a\u5b57\u7b26\u3002`);
       const ctx=this.ctx;ctx.clearRect(0,0,32,12);ctx.font='12px PunchFusion';ctx.textBaseline='alphabetic';ctx.fillStyle='#000';
       const width=Math.max(1,Math.round(ctx.measureText(char).width));
-      if(width>32)throw new Error(`「${char}」超出点阵字库的字符范围。`);
+      if(width>32)throw new Error(`\u300c${char}\u300d\u8d85\u51fa\u70b9\u9635\u5b57\u5e93\u7684\u5b57\u7b26\u8303\u56f4\u3002`);
       ctx.fillText(char,0,10);const data=ctx.getImageData(0,0,width,12).data;const points=[];
       for(let y=0;y<12;y++)for(let x=0;x<width;x++)if(data[(y*width+x)*4+3]>=128)points.push({x,y});
-      if(!points.length)throw new Error(`「${char}」没有可打孔的字形，请替换。`);
+      if(!points.length)throw new Error(`\u300c${char}\u300d\u6ca1\u6709\u53ef\u6253\u5b54\u7684\u5b57\u5f62\uff0c\u8bf7\u66ff\u6362\u3002`);
       glyph={char,width,height:12,points};
     }
     this.cache.set(key,glyph);return glyph;
   }
   text(text,style){
     const chars=Array.from(text.replace(/\r\n?/g,'\n').normalize('NFC'));
-    if(chars.length>120)throw new Error('请把文字缩短到 120 个字符以内。');
+    if(chars.length>120)throw new Error('\u8bf7\u628a\u6587\u5b57\u7f29\u77ed\u5230 120 \u4e2a\u5b57\u7b26\u4ee5\u5185\u3002');
     return chars.map(char=>this.glyph(char,style));
   }
 }

@@ -10,7 +10,7 @@ export function wrapGlyphs(glyphs,maxColumns){
   for(let i=0;i<glyphs.length;){
     const g=glyphs[i];
     if(g.newline){push();i++;continue;}
-    if(g.width>maxColumns)throw new Error('孔径太大，单个字符也超出文字区域。请减小孔径或增加区域宽度。');
+    if(g.width>maxColumns)throw new Error('\u5b54\u5f84\u592a\u5927\uff0c\u5355\u4e2a\u5b57\u7b26\u4e5f\u8d85\u51fa\u6587\u5b57\u533a\u57df\u3002\u8bf7\u51cf\u5c0f\u5b54\u5f84\u6216\u589e\u52a0\u533a\u57df\u5bbd\u5ea6\u3002');
     if(/^\s$/.test(g.char)){if(row.length)row.push(g);i++;continue;}
     const token=[];
     if(/^[\x21-\x7e]$/.test(g.char)){
@@ -22,7 +22,7 @@ export function wrapGlyphs(glyphs,maxColumns){
     }else{
       if(row.length)push();
       for(const part of token){
-        if(part.width>maxColumns)throw new Error('孔径太大，单个字符超出文字区域。');
+        if(part.width>maxColumns)throw new Error('\u5b54\u5f84\u592a\u5927\uff0c\u5355\u4e2a\u5b57\u7b26\u8d85\u51fa\u6587\u5b57\u533a\u57df\u3002');
         if(row.length&&lineWidth([...row,part])>maxColumns)push();
         row.push(part);
       }
@@ -58,7 +58,7 @@ export function donorGrid(width,height,n,diameter,seed=37){
   if(!n)return [];
   const gap=diameter*.25;
   const nxMax=Math.floor(width/(diameter+gap));const nyMax=Math.floor(height/(diameter+gap));
-  if(nxMax*nyMax<n)throw new Error('原画无法容纳这么多孔。请减小孔径或缩短文字。');
+  if(nxMax*nyMax<n)throw new Error('\u539f\u753b\u65e0\u6cd5\u5bb9\u7eb3\u8fd9\u4e48\u591a\u5b54\u3002\u8bf7\u51cf\u5c0f\u5b54\u5f84\u6216\u7f29\u77ed\u6587\u5b57\u3002');
   let nx=clamp(Math.ceil(Math.sqrt(n*width/height)),Math.ceil(n/nyMax),nxMax);
   let ny=Math.ceil(n/nx);const cw=width/nx,ch=height/ny;
   let t=seed>>>0;
@@ -86,7 +86,7 @@ const percent=(value,fallback)=>clamp(numeric(value,fallback),0,100);
 const holeArea=(diameter,shape)=>diameter*diameter*(shape==='circle'?Math.PI/4:1);
 
 export function createPlan(width,height,glyphs,options={}){
-  if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)throw new Error('图片尺寸无效。');
+  if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)throw new Error('\u56fe\u7247\u5c3a\u5bf8\u65e0\u6548\u3002');
   const transfer=options.mode==='transfer';
   const split=options.split==='vertical'||options.split==='horizontal'?options.split:width<height?'horizontal':'vertical';
   const imageShape=options.imageShape==='circle'?'circle':'square';
@@ -113,12 +113,12 @@ export function createPlan(width,height,glyphs,options={}){
     }
     diameter=lo;
   }else diameter=numeric(options.holeSize,16)/1200*width;
-  if(!Number.isFinite(diameter)||diameter<=0)throw new Error('孔径必须大于零。');
+  if(!Number.isFinite(diameter)||diameter<=0)throw new Error('\u5b54\u5f84\u5fc5\u987b\u5927\u4e8e\u96f6\u3002');
   const result=tryLayout(diameter);
   const positionX=percent(options.positionX,50),positionY=percent(options.positionY??options.position,82);
   let regionX=0,regionY=0,regionHeight=height,fullWidth=width,fullHeight=height,captionRect=null,donors=[],sourceDiameter=diameter,imageHoles=[],imageDiameter=0;
   if(!transfer){
-    if(result.height>height-2*pad)throw new Error('当前孔径需要更多行，原画高度不足。请减小孔径、缩短文字或切换「碎片拼字」。');
+    if(result.height>height-2*pad)throw new Error('\u5f53\u524d\u5b54\u5f84\u9700\u8981\u66f4\u591a\u884c\uff0c\u539f\u753b\u9ad8\u5ea6\u4e0d\u8db3\u3002\u8bf7\u51cf\u5c0f\u5b54\u5f84\u3001\u7f29\u77ed\u6587\u5b57\u6216\u5207\u6362\u300c\u788e\u7247\u62fc\u5b57\u300d\u3002');
   }else{
     ({donors,sourceDiameter}=sourceSamplers(width,height,n,diameter));
     // Caption height grows rather than shrinking type. The extra space also
@@ -129,7 +129,7 @@ export function createPlan(width,height,glyphs,options={}){
     else{regionY=height;fullHeight=Math.ceil(height+regionHeight);}
     captionRect={x:regionX,y:regionY,width:regionWidth,height:regionHeight};
     imageDiameter=Math.min(numeric(options.imageHoleSize,28)/1200*width,Math.min(width,height)/1.25);
-    if(imageDiameter<=0)throw new Error('原画孔径必须大于零。');
+    if(imageDiameter<=0)throw new Error('\u539f\u753b\u5b54\u5f84\u5fc5\u987b\u5927\u4e8e\u96f6\u3002');
     const density=clamp(numeric(options.imageDensity,3.5),0,45);
     const capacity=Math.floor(width/(imageDiameter*1.25))*Math.floor(height/(imageDiameter*1.25));
     const holeCount=Math.min(capacity,Math.round(width*height*density/100/holeArea(imageDiameter,imageShape)));
@@ -174,7 +174,7 @@ export function analyzeColors(data){
   const hue=hueCount&&Math.hypot(sumA,sumB)>.001?Math.atan2(sumB,sumA):Math.PI/2;
   const light=paperColor(.95,.025,hue),dark=paperColor(.27,.022,hue);
   const preferred=meanL>.92?dark:light;
-  return {preferred,hue,meanL,swatches:[light,paperColor(.94,.025,hue+Math.PI),paperColor(.96,.018,Math.PI/2),dark],description:meanL>.92?'原画接近白色，使用同色相的深纸色增强孔洞辨识。':'延续原画色相，降低饱和度，得到柔和的浅纸色。'};
+  return {preferred,hue,meanL,swatches:[light,paperColor(.94,.025,hue+Math.PI),paperColor(.96,.018,Math.PI/2),dark],description:meanL>.92?'\u539f\u753b\u63a5\u8fd1\u767d\u8272\uff0c\u4f7f\u7528\u540c\u8272\u76f8\u7684\u6df1\u7eb8\u8272\u589e\u5f3a\u5b54\u6d1e\u8fa8\u8bc6\u3002':'\u5ef6\u7eed\u539f\u753b\u8272\u76f8\uff0c\u964d\u4f4e\u9971\u548c\u5ea6\uff0c\u5f97\u5230\u67d4\u548c\u7684\u6d45\u7eb8\u8272\u3002'};
 }
 
 export function holePath(ctx,x,y,d,shape){if(shape==='circle'){ctx.moveTo(x+d,y+d/2);ctx.arc(x+d/2,y+d/2,d/2,0,Math.PI*2);}else ctx.rect(x,y,d,d);}
@@ -214,7 +214,7 @@ export function exportSvg(sourceData,plan,options){
   const holeShape=transfer?(options.imageShape||plan.imageShape||'square'):options.shape;
   const holeColor=transfer?(options.imageHoleColor||options.paperColor):options.paperColor;
   const defs=[];
-  const body=[`<title>Alive 打孔艺术</title><rect width="${w}" height="${h}" fill="${xml(options.paperColor)}"/>`,`<image id="original-image" href="${xml(sourceData)}" width="${plan.imageWidth}" height="${plan.imageHeight}"/>`,holes.map(p=>svgHole(p,holeDiameter,holeShape,`fill="${xml(holeColor)}"`)).join('')];
+  const body=[`<title>Alive \u6253\u5b54\u827a\u672f</title><rect width="${w}" height="${h}" fill="${xml(options.paperColor)}"/>`,`<image id="original-image" href="${xml(sourceData)}" width="${plan.imageWidth}" height="${plan.imageHeight}"/>`,holes.map(p=>svgHole(p,holeDiameter,holeShape,`fill="${xml(holeColor)}"`)).join('')];
   if(transfer){
     const sampleScale=d/(plan.sourceDiameter||d||1);
     defs.push(`<image id="source" href="${xml(sourceData)}" width="${plan.imageWidth}" height="${plan.imageHeight}"/>`);

@@ -1,23 +1,24 @@
-# 字体与素材许可
+# Licenses and attribution
 
-## Fusion Pixel
+## Project source
 
-- 项目：[TakWolf/fusion-pixel-font](https://github.com/TakWolf/fusion-pixel-font)
-- 固定发布：[2026.09.25](https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.09.25)
-- 使用文件：`fusion-pixel-12px-monospaced-zh_hans.ttf.woff2`，应用内去掉 `.ttf` 中间后缀，字体内容未修改
-- 许可证：SIL Open Font License 1.1
-- 分发声明：`punch-studio/dist/assets/OFL.txt` 与 `punch-studio/dist/assets/LICENSES/`
+A repository-wide software license has not yet been adopted. The original application code and classic 5-by-7 bitmap alphabet are maintained in this repository. Third-party fonts and sample artwork have separate terms.
 
-字体遵守字体的 OFL 与组件版权声明；上游构建代码的 MIT 许可不能替代字体许可。覆盖表从所用字体的 cmap 提取，为闭区间十进制码点列表。
+For permissive reuse with retained copyright and license notices, [MIT](https://opensource.org/license/mit) is a suitable software-license choice. It permits modification, redistribution and commercial use without royalties or requiring modified source to be published. It does not mandate visible author credit in every application's interface.
 
-## 经典 5×7 字模
+## Fusion Pixel font
 
-`font.js` 中的字模表为本项目编写，没有依赖远程字体服务或商业像素字库。项目整体的开源许可证尚未由用户选择。
+The bundled [Fusion Pixel font](https://github.com/TakWolf/fusion-pixel-font) is pinned to release [2026.09.25](https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.09.25).
 
-## 示例原画
+- Upstream file: `fusion-pixel-12px-monospaced-zh_hans.ttf.woff2`.
+- Bundled filename: `fusion-pixel-12px-monospaced-zh_hans.woff2`.
+- Font license: SIL Open Font License 1.1.
+- Notices: `punch-studio/dist/assets/OFL.txt` and `punch-studio/dist/assets/LICENSES/`.
 
-当前示例为用户提供的第一张参考图，位于 `punch-studio/dist/assets/sample.png`，用于项目展示。按用户提供的信息署名：**十二時**；[原画来源](https://xhslink.cn/o/75GwJDczjxb)。使用默认示例时在页面显示署名与来源，用户上传的图片不使用此署名。
+Font data is unchanged; only the intermediate `.ttf` filename suffix is omitted. The coverage table stores decimal code-point intervals from the font's character map. The upstream build-code license does not replace the font's OFL terms or component notices. The Cubic 11 notice keeps its English copyright notices and the complete official English OFL; the additional derivative-license condition is translated into English. Its upstream notice is available in [Cubic 11](https://github.com/ACh-K/Cubic-11/blob/main/OFL.txt).
 
-署名与来源链接本身不构成作者授权或开放许可。本项目不声明已取得作者的独立发布、其他用途或再许可授权，也不将代码或字体的许可套用于该图。
+## Sample artwork
 
-第二、第三张参考图仅用于设计理解，没有随网页分发。
+The default image at `punch-studio/dist/assets/sample.png` is credited to [ShiErShi](https://xhslink.cn/o/75GwJDczjxb). The editor displays this attribution for the sample and hides it for uploaded images.
+
+No open license is asserted for this artwork. Attribution does not grant redistribution or relicensing rights; any software license adopted for this project does not cover the image. Use artwork you have the rights to use for your own examples.

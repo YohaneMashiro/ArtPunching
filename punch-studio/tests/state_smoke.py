@@ -61,7 +61,7 @@ with sync_playwright() as p:
     page.locator('[data-mode=transfer]').click()
     page.locator('[data-split=horizontal]').click()
     ready(page)
-    page.locator('#letters').fill('REMEMBER ME\n记得我')
+    page.locator('#letters').fill('REMEMBER ME\n\u8bb0\u5f97\u6211')
     ready(page)
     for selector, value in [('#position-x', '23'), ('#position', '61'), ('#density', '41'), ('#area-width', '73'), ('#zoom', '185')]:
         edit(page, selector, value)
@@ -101,8 +101,8 @@ with sync_playwright() as p:
     second.close()
     record('reload and another page restore language, letters, every artwork setting and preview/export preferences')
 
-    page.locator('#image-file').set_input_files({'name': '用户原画.png', 'mimeType': 'image/png', 'buffer': (ROOT / 'dist' / 'assets' / 'sample.png').read_bytes()})
-    page.wait_for_function("document.getElementById('image-name').textContent==='用户原画.png'")
+    page.locator('#image-file').set_input_files({'name': '\u7528\u6237\u539f\u753b.png', 'mimeType': 'image/png', 'buffer': (ROOT / 'dist' / 'assets' / 'sample.png').read_bytes()})
+    page.wait_for_function("document.getElementById('image-name').textContent==='\u7528\u6237\u539f\u753b.png'")
     ready(page)
     assert page.locator('#sample-credit').is_hidden()
     raw = page.evaluate('key=>localStorage.getItem(key)', KEY)
@@ -110,7 +110,7 @@ with sync_playwright() as p:
     page.reload()
     ready(page)
     assert page.locator('#sample-credit').is_visible()
-    assert page.locator('#image-name').inner_text() != '用户原画.png'
+    assert page.locator('#image-name').inner_text() != '\u7528\u6237\u539f\u753b.png'
     assert read(page)['settings'] == expected['settings']
     record('uploaded image is not stored; reload restores settings with the attributed demo source')
 

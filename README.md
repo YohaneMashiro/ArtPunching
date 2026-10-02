@@ -1,33 +1,70 @@
-# Alive · 打孔艺术工作室
+# ArtPunching
 
-上传 `image`、输入 `letters`，在浏览器内生成打孔艺术。
+A browser-based punch art editor. Add an image and some text to arrange holes into lettering, or build lettering from pieces of the image.
 
-默认在原画上以孔洞拼出文字；也可以在原画旁以图像块拼字，选择上下或左右布局。支持中英文点阵、自动估算孔径与换行、水平/垂直定位、智能底色、独立原画散孔、高清 PNG 和内嵌图片的 SVG 导出。预览支持 Ctrl + 滚轮缩放与灵敏度调节。画布底色与原画孔色共用网页调色板，支持 HEX / RGB 填写、色相与饱和度 / 明度调整，手机和电脑使用相同控件，无需系统颜色选择器。
+[Open the editor](https://yohanemashiro.github.io/ArtPunching/) · [Chinese README](README.zh-CN.md) · [Documentation](docs/README.md)
 
-界面支持中文 / English，首次访问默认中文。语言、文字、作品参数与预览设置在当前浏览器保存，从最后一次操作起保留 7 天；刷新或重新打开可恢复。图片文件不保存，刷新后显示示例原画，自己的原画需重新选择。默认示例原画署名：[十二時](https://xhslink.cn/o/75GwJDczjxb)，素材权利说明见 [许可文档](docs/licenses.md)。
+## Features
 
-在线使用：[Alive · 打孔艺术工作室](https://yohanemashiro.github.io/ArtPunching/)。源码仓库：[YohaneMashiro/ArtPunching](https://github.com/YohaneMashiro/ArtPunching)。已通过 GitHub Pages 发布并完成线上检查，提交邮箱使用 `ylpwannzdm@126.com`。应用没有后端、远程字体、分析脚本或上传 API；用户图片只在浏览器内处理。
+- **Text on image:** preserve the image and place text-shaped holes over it.
+- **Image tile lettering:** combine independently adjustable image holes with lettering made from sampled image tiles. Choose automatic, top/bottom or left/right layout.
+- **Pixel typography:** bundled English and Chinese pixel fonts, automatic dot sizing, wrapping and horizontal/vertical text positioning.
+- **Unified color palette:** HEX and RGB inputs, hue control, a saturation/brightness field, touch dragging and keyboard adjustment. Paper and image holes use the same web controls across devices.
+- **Local preview:** Ctrl + wheel zoom, a zoom slider and adjustable wheel sensitivity.
+- **Export:** PNG at original or 2x size, and SVG with the image embedded.
+- **Chinese and English interface:** Chinese on first use; subsequent visits restore the selected language.
+- **Remembered settings:** text, artwork settings and view settings remain in the current browser for seven days after the last change.
 
-## 本地启动（WSL）
+## Privacy and saved settings
 
-在项目根目录运行：
+Image decoding, typography, color analysis, rendering and exports run in the browser. The editor has no backend, upload API, analytics scripts or remote font requests.
+
+Settings use browser-local storage. Image files are not stored: reopening the page loads the sample artwork with the saved text and settings, and a custom image must be selected again. Expired settings return to the defaults. If storage is unavailable, editing and export continue without saved settings.
+
+The sample artwork is credited to [ShiErShi](https://xhslink.cn/o/75GwJDczjxb). Font and artwork notices are listed in [Asset licenses](docs/licenses.md).
+
+## Run locally
+
+Clone the repository and serve the static editor with Python 3:
 
 ```bash
-python3 -m http.server 4173 --bind 0.0.0.0 --directory punch-studio/dist
+git clone https://github.com/YohaneMashiro/ArtPunching.git
+cd ArtPunching
+python3 -m http.server 4173 --bind 127.0.0.1 --directory punch-studio/dist
 ```
 
-打开 <http://localhost:4173/>。通过本地 HTTP 服务打开；直接双击 HTML 的 `file://` 模式不支持模块和本地字库读取。
+Open [localhost:4173](http://localhost:4173/). Use `python` instead of `python3` if that is the command provided by your Python installation. A local HTTP server is required; opening `index.html` through `file://` does not support the editor's modules and local asset loading.
 
-也可运行 `./start-local.sh`，脚本会从自己的位置定位项目目录。
+No dependency installation or build step is required. The runtime consists of the files in `punch-studio/dist/`.
 
-使用当前浏览器版本的 Chrome、Edge、Firefox 或 Safari。输入图片支持 PNG、JPEG 和 WebP，最多 30 MB；字数上限 120。超出字库覆盖的字符会明确提示。
+Use a current Chrome, Edge, Firefox or Safari release. Images may be PNG, JPEG or WebP, up to 30 MB. Text supports up to 120 characters within the bundled font coverage.
 
-## 文档
+## Development
 
-- [使用与控件](docs/usage.md)
-- [图像处理、字模与排版算法](docs/algorithm.md)
-- [本地测试与验收](docs/testing.md)
-- [GitHub Pages 发布与 VPS 部署](docs/deployment.md)
-- [字体与参考图许可](docs/licenses.md)
+The static files are maintained directly:
 
-应用是 `punch-studio/dist/` 内的静态文件；无需安装应用依赖，也无需构建。Node 只用于算法、颜色转换与状态缓存的自动测试。
+| File | Responsibility |
+| --- | --- |
+| `punch-studio/dist/index.html`, `style.css` | Editor interface and responsive layout |
+| `punch-studio/dist/app.js` | Image loading, controls, preview and exports |
+| `punch-studio/dist/core.js` | Layout, image sampling, color analysis and rendering |
+| `punch-studio/dist/font.js` | Pixel glyph extraction and bundled font coverage |
+| `punch-studio/dist/color.js`, `palette.js` | Color conversion, validation and palette interaction |
+| `punch-studio/dist/state.js`, `i18n.js` | Saved settings and interface translations |
+| `punch-studio/tests/` | Geometry, color, state and browser checks |
+
+Run the dependency-free unit tests with Node.js 22 or later:
+
+```bash
+node --test punch-studio/tests/*.test.js
+```
+
+The GitHub Pages workflow runs these tests and publishes `punch-studio/dist/` on pushes to `main`. See [Deployment](docs/deployment.md) for hosting configuration and [Testing](docs/testing.md) for browser checks.
+
+## Documentation
+
+- [Usage and controls](docs/usage.md)
+- [Rendering and layout algorithms](docs/algorithm.md)
+- [Testing](docs/testing.md)
+- [Deployment](docs/deployment.md)
+- [Asset licenses](docs/licenses.md)

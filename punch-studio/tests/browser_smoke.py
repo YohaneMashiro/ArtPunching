@@ -45,9 +45,9 @@ with sync_playwright() as p:
     page.on('request', lambda request: requests.append(request.url))
     page.goto(BASE)
     ready(page)
-    assert page.locator('#font-state').inner_text() == '离线点阵字库'
+    assert page.locator('#font-state').inner_text() == '\u79bb\u7ebf\u70b9\u9635\u5b57\u5e93'
     assert page.locator('[data-mode=punch]').get_attribute('aria-pressed') == 'true'
-    assert page.locator('#line-count').inner_text() == '1 行文字'
+    assert page.locator('#line-count').inner_text() == '1 \u884c\u6587\u5b57'
     assert page.locator('#export-bottom').count() == 0
     assert page.locator('.export-trigger').count() == 1
     page.screenshot(path=OUT / 'studio-desktop.png')
@@ -65,10 +65,10 @@ with sync_playwright() as p:
     assert 'data:image/png;base64,' in svg.read_text()
     record('self-contained SVG download')
 
-    page.locator('#letters').fill('你好　世界\nCafé')
+    page.locator('#letters').fill('\u4f60\u597d\u3000\u4e16\u754c\nCafé')
     settle(page)
     ready(page)
-    assert page.locator('#line-count').inner_text() == '2 行文字'
+    assert page.locator('#line-count').inner_text() == '2 \u884c\u6587\u5b57'
     assert int(page.locator('#hole-count').inner_text().split()[0]) > 150
     page.locator('#letters').fill('Cafe\u0301')
     settle(page)
@@ -78,7 +78,7 @@ with sync_playwright() as p:
     page.locator('#letters').fill('ART 🧪')
     settle(page)
     assert page.locator('#export-top').is_disabled()
-    assert '暂不支持' in page.locator('#status').inner_text()
+    assert '\u6682\u4e0d\u652f\u6301' in page.locator('#status').inner_text()
     assert page.locator('#loading').is_visible()
     page.locator('#letters').fill('A' * 121)
     settle(page)
@@ -102,7 +102,7 @@ with sync_playwright() as p:
     page.locator('#hole-size').fill('45')
     settle(page)
     assert page.locator('#export-top').is_disabled()
-    assert '不足' in page.locator('#status').inner_text()
+    assert '\u4e0d\u8db3' in page.locator('#status').inner_text()
     record('manual overflow is visible and export is blocked')
 
     page.locator('#letters').fill('ALIVE ART')
@@ -138,7 +138,7 @@ with sync_playwright() as p:
     page.locator('#letters').fill('  \n')
     settle(page)
     ready(page)
-    assert page.locator('#hole-count').inner_text() == '0 个孔'
+    assert page.locator('#hole-count').inner_text() == '0 \u4e2a\u5b54'
     assert page.locator('#dimensions').inner_text() == '1280 × 960 px'
     record('blank letters retain unpunched image')
 
@@ -192,7 +192,7 @@ with sync_playwright() as p:
     mobile.goto(BASE)
     ready(mobile)
     assert mobile.evaluate('document.documentElement.scrollWidth <= innerWidth')
-    mobile.locator('#letters').fill('绿野艺术')
+    mobile.locator('#letters').fill('\u7eff\u91ce\u827a\u672f')
     settle(mobile)
     ready(mobile)
     mobile.screenshot(path=OUT/'studio-mobile.png',full_page=True)
@@ -202,7 +202,7 @@ with sync_playwright() as p:
     race.add_init_script('''const original=FontFace.prototype.load;FontFace.prototype.load=function(){return new Promise((resolve,reject)=>setTimeout(()=>original.call(this).then(resolve,reject),700));};''')
     race.goto(BASE,wait_until='domcontentloaded')
     race.locator('#image-file').set_input_files(ROOT/'dist'/'assets'/'sample.png')
-    race.wait_for_function("document.getElementById('font-state').textContent === '离线点阵字库'")
+    race.wait_for_function("document.getElementById('font-state').textContent === '\u79bb\u7ebf\u70b9\u9635\u5b57\u5e93'")
     settle(race)
     assert race.locator('#image-name').inner_text() == 'sample.png'
     record('upload during font initialization is not overwritten by demo')
@@ -214,10 +214,10 @@ with sync_playwright() as p:
     tool_result = tools_page.evaluate('''() => {
       const read=window.__punchTools.find(t=>t.name==='read_punch_art');
       const configure=window.__punchTools.find(t=>t.name==='configure_punch_art');
-      const valid=configure.execute({letters:'绿野',mode:'transfer',shape:'circle',paperColor:'#ddeeff'});
+      const valid=configure.execute({letters:'\u7eff\u91ce',mode:'transfer',shape:'circle',paperColor:'#ddeeff'});
       const after=read.execute({});let rejected=false;
       try{configure.execute({letters:'changed',mode:'invalid'});}catch{rejected=true;}
-      return {valid,after,rejected,unchanged:read.execute({}).letters==='绿野',names:window.__punchTools.map(t=>t.name)};
+      return {valid,after,rejected,unchanged:read.execute({}).letters==='\u7eff\u91ce',names:window.__punchTools.map(t=>t.name)};
     }''')
     assert tool_result['valid']['valid'] and tool_result['rejected'] and tool_result['unchanged']
     assert tool_result['after']['settings']['mode'] == 'transfer'

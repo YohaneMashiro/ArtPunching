@@ -296,12 +296,17 @@ with sync_playwright() as p:
     assert float(root.attrib['height']) == dimensions['height']
     record('English export dialog, dimensions, actions, completion messages and valid PNG/SVG downloads')
 
+    before_reload = {'settings': read(page)['settings'], 'letters': page.locator('#letters').input_value(), 'zoom': page.locator('#zoom').input_value(), 'sensitivity': page.locator('#zoom-sensitivity').input_value()}
     page.reload()
     ready(page)
-    assert page.locator('#language-select').input_value() == 'zh'
-    assert page.locator('html').get_attribute('lang').startswith('zh')
+    assert page.locator('#language-select').input_value() == 'en'
+    assert page.locator('html').get_attribute('lang').startswith('en')
+    assert read(page)['settings'] == before_reload['settings']
+    assert page.locator('#letters').input_value() == before_reload['letters']
+    assert page.locator('#zoom').input_value() == before_reload['zoom']
+    assert page.locator('#zoom-sensitivity').input_value() == before_reload['sensitivity']
     assert page.locator('#sample-credit').is_visible()
-    record('new load always starts in Chinese')
+    record('refresh remembers language, text, artwork settings and preview settings')
 
     for width, height in [(390, 844), (320, 640)]:
         mobile = browser.new_page(viewport={'width': width, 'height': height}, is_mobile=True, has_touch=True, locale='en-US')

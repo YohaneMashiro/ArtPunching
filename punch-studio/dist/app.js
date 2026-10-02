@@ -1,14 +1,70 @@
 import {PixelLibrary} from './font.js';
 import {createPlan,renderArt,analyzeColors,exportSvg,clamp} from './core.js';
 import {t,setLanguage,translateDOM,translateError} from './i18n.js';
+import {parseHex} from './color.js';
+import {ColorPalette} from './palette.js';
+import {browserStorage,readState,writeState} from './state.js';
 
 const $=id=>document.getElementById(id);
 const library=new PixelLibrary();
 const defaults={mode:'punch',shape:'square',autoSize:true,holeSize:16,autoColor:true,paperColor:'#e8f2e9',spacing:32,position:82,positionY:82,positionX:50,areaWidth:84,fontStyle:'classic',depth:true,split:'auto',imageDensity:3.5,imageShape:'square',imageHoleSize:28,imageHoleColor:null};
-let options={...defaults};let source=null,plan=null,colors=null,currentName=t('image.demoName'),sourceIsDemo=true;
-let original=false,renderFrame=0,imageRequest=0,imageBusy=false,valid=false,imageNote=null;
-let viewZoom=1,zoomSensitivity=1;
+const storage=browserStorage(),restored=readState(storage,defaults);
+let language=restored?.language||'zh';setLanguage(language);
+let options=restored?.settings||{...defaults};let source=null,plan=null,colors=null,currentName=t('image.demoName'),sourceIsDemo=true;
+let original=restored?.view.original||false,renderFrame=0,imageRequest=0,imageBusy=false,valid=false,imageNote=null;
+let viewZoom=restored?.view.zoom||1,zoomSensitivity=restored?.view.sensitivity||1;
 let fontState='font.loading',loadingKey='loading.prepare',statusModel={key:'',error:false,params:{}};
+let initializing=true,saveTimer=0,settingsDirty=false,storageAvailable=!!storage,paletteSnapshot=null;
+
+function settingsNote(){$('settings-note').textContent=t(storageAvailable?'settings.saved':'settings.unavailable');}
+function flushSettings(){
+  if(saveTimer){clearTimeout(saveTimer);saveTimer=0;}
+  if(!settingsDirty)return;
+  settingsDirty=false;
+  storageAvailable=writeState(storage,{language,letters:$('letters').value,settings:{...options,...(paletteSnapshot||{})},view:{zoom:viewZoom,sensitivity:zoomSensitivity,original,exportScale:exportScale()}});
+  settingsNote();
+}
+function rememberSettings(){if(initializing)return;settingsDirty=true;if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(flushSettings,100);}
+window.addEventListener('pagehide',flushSettings);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushSettings();});
+
+function selectedColor(target){return target==='paper'?options.paperColor:options.imageHoleColor||options.paperColor;}
+function clearColorDraft(target){
+  const input=$(target==='paper'?'paper-color':'image-color');delete input.dataset.dirty;input.setAttribute('aria-invalid','false');
+  $(target+'-color-error').hidden=true;input.value=selectedColor(target).toUpperCase();
+}
+function updateColorField(target){
+  const input=$(target+'-color');if(!input.dataset.dirty)input.value=selectedColor(target).toUpperCase();
+  $(target+'-color-chip').style.backgroundColor=selectedColor(target);
+  if(input.getAttribute('aria-invalid')==='true')$(target+'-color-error').textContent=t('palette.hexError');
+}
+function setColor(target,value,persist=true){
+  const color=parseHex(value);if(!color)return;
+  if(target==='paper'){options.paperColor=color;options.autoColor=false;}else options.imageHoleColor=color;
+  scheduleRender(persist);
+}
+const palette=new ColorPalette({
+  getColor:selectedColor,
+  onBegin(){flushSettings();clearColorDraft('paper');clearColorDraft('image');return paletteSnapshot={paperColor:options.paperColor,autoColor:options.autoColor,imageHoleColor:options.imageHoleColor};},
+  onPreview(target,color){setColor(target,color,false);},
+  onCancel(target,snapshot){Object.assign(options,snapshot);paletteSnapshot=null;clearColorDraft('paper');clearColorDraft('image');scheduleRender();},
+  onCommit(target,color){paletteSnapshot=null;clearColorDraft(target);setColor(target,color);},
+});
+for(const target of ['paper','image']){
+  const input=$(target+'-color');
+  function validate(normalize=false){
+    const color=parseHex(input.value);input.dataset.dirty='true';input.setAttribute('aria-invalid',String(!color));
+    const error=$(target+'-color-error');error.hidden=!!color;error.textContent=color?'':t('palette.hexError');
+    if(color){if(normalize){delete input.dataset.dirty;input.value=color.toUpperCase();}setColor(target,color);}
+  }
+  input.addEventListener('input',()=>validate());input.addEventListener('change',()=>validate(true));
+  input.addEventListener('keydown',event=>{
+    if(event.isComposing)return;
+    if(event.key==='Enter'){event.preventDefault();validate(true);}
+    if(event.key==='Escape'){event.preventDefault();clearColorDraft(target);}
+  });
+  $(target+'-palette').addEventListener('click',event=>palette.open(target,event.currentTarget));
+}
 
 function status(key='',error=false,params={}){
   statusModel={key,error,params};
@@ -26,7 +82,7 @@ function syncButtons(){
   document.querySelectorAll('[data-shape]').forEach(b=>{const active=b.dataset.shape===options.shape;b.classList.toggle('active',active);b.setAttribute('aria-pressed',active);});
   for(const [attribute,key] of [['data-split','split'],['data-image-shape','imageShape']])document.querySelectorAll(`[${attribute}]`).forEach(b=>{const active=b.getAttribute(attribute)===options[key];b.classList.toggle('active',active);b.setAttribute('aria-pressed',active);});
   ['auto-size','auto-color'].forEach(id=>{const yes=id==='auto-size'?options.autoSize:options.autoColor;$(id).classList.toggle('selected',yes);$(id).setAttribute('aria-pressed',yes);});
-  $('paper-color').value=options.paperColor;$('color-hex').textContent=options.paperColor.toUpperCase();
+  updateColorField('paper');
   $('color-description').textContent=t(options.autoColor?(colors?(colors.meanL>.92?'paper.darkHint':'paper.lightHint'):'paper.defaultHint'):'paper.customHint');
   $('position-value').textContent=options.positionY+'%';$('position-x-value').textContent=options.positionX+'%';
   $('density-value').textContent=options.spacing+'%';$('width-value').textContent=options.areaWidth+'%';
@@ -35,7 +91,7 @@ function syncButtons(){
   const transfer=options.mode==='transfer';$('split-controls').hidden=!transfer;$('split-hint').hidden=!transfer;$('image-settings').hidden=!transfer;
   $('position').disabled=false;$('position-x').disabled=false;
   $('image-density-value').textContent=options.imageDensity+'%';
-  const imageColor=options.imageHoleColor||options.paperColor;$('image-color').value=imageColor;$('image-color-hex').textContent=imageColor.toUpperCase();
+  updateColorField('image');
   const follows=!options.imageHoleColor;$('link-image-color').classList.toggle('selected',follows);$('link-image-color').setAttribute('aria-pressed',follows);
   const hasText=!!$('letters').value.trim();
   $('image-settings-hint').textContent=t(hasText?'imageHoles.hint':'imageHoles.empty');
@@ -45,7 +101,7 @@ function updateSwatches(){
   $('swatches').replaceChildren();
   for(const [i,color] of colors.swatches.entries()){
     const b=document.createElement('button');b.className='swatch';b.style.background=color;b.setAttribute('aria-label',t(['paper.light','paper.complement','paper.warm','paper.dark'][i])+' '+color);b.title=color;
-    b.addEventListener('click',()=>{options.paperColor=color;options.autoColor=false;scheduleRender();});$('swatches').append(b);
+    b.addEventListener('click',()=>{clearColorDraft('paper');options.paperColor=color;options.autoColor=false;scheduleRender();});$('swatches').append(b);
   }
 }
 function syncPlanLabels(){
@@ -84,7 +140,7 @@ function render(){
     status(error.message,true);allowExport(false);
   }
 }
-function scheduleRender(){allowExport(false);if(!renderFrame)renderFrame=requestAnimationFrame(render);}
+function scheduleRender(persist=true){allowExport(false);if(persist)rememberSettings();if(!renderFrame)renderFrame=requestAnimationFrame(render);}
 
 async function loadImage(blob,name,request=++imageRequest,isDemo=false){
   imageBusy=true;allowExport(false);setLoading('loading.image');$('loading').hidden=false;
@@ -101,7 +157,7 @@ async function loadImage(blob,name,request=++imageRequest,isDemo=false){
     const ctx=sample.getContext('2d',{willReadFrequently:true});ctx.drawImage(next,0,0,sample.width,sample.height);
     $('thumb').src=sample.toDataURL('image/png');
     colors=analyzeColors(ctx.getImageData(0,0,sample.width,sample.height).data);
-    if(options.autoColor)options.paperColor=colors.preferred;updateSwatches();
+    if(options.autoColor)options.paperColor=colors.preferred;clearColorDraft('paper');clearColorDraft('image');updateSwatches();
     imageBusy=false;render();
   }catch(error){
     if(request!==imageRequest)return;
@@ -124,7 +180,7 @@ function receiveFile(file){
 $('image-file').addEventListener('change',e=>{receiveFile(e.target.files[0]);e.target.value='';});
 $('use-demo').addEventListener('click',useDemo);
 $('language-select').addEventListener('change',e=>{
-  const previous=statusModel;setLanguage(e.target.value);translateDOM();
+  const previous=statusModel;language=e.target.value;setLanguage(language);translateDOM();palette.refreshLanguage();settingsNote();rememberSettings();
   $('font-state').textContent=t(fontState);setLoading(loadingKey);
   if(sourceIsDemo){currentName=t('image.demoName');$('image-name').textContent=currentName;}
   if(colors)updateSwatches();
@@ -142,10 +198,8 @@ document.querySelectorAll('[data-split]').forEach(b=>b.addEventListener('click',
 document.querySelectorAll('[data-image-shape]').forEach(b=>b.addEventListener('click',()=>{options.imageShape=b.dataset.imageShape;scheduleRender();}));
 $('image-density').addEventListener('input',e=>{options.imageDensity=Number(e.target.value);scheduleRender();});
 $('image-hole-size').addEventListener('input',e=>{options.imageHoleSize=Number(e.target.value);scheduleRender();});
-$('image-color').addEventListener('input',e=>{options.imageHoleColor=e.target.value;scheduleRender();});
-$('link-image-color').addEventListener('click',()=>{options.imageHoleColor=null;scheduleRender();});
-$('paper-color').addEventListener('input',e=>{options.paperColor=e.target.value;options.autoColor=false;scheduleRender();});
-$('auto-color').addEventListener('click',()=>{if(colors){options.paperColor=colors.preferred;options.autoColor=true;scheduleRender();}});
+$('link-image-color').addEventListener('click',()=>{options.imageHoleColor=null;clearColorDraft('image');scheduleRender();});
+$('auto-color').addEventListener('click',()=>{if(colors){options.paperColor=colors.preferred;options.autoColor=true;clearColorDraft('paper');scheduleRender();}});
 $('hole-size').addEventListener('input',e=>{options.holeSize=Number(e.target.value);options.autoSize=false;scheduleRender();});
 $('auto-size').addEventListener('click',()=>{options.autoSize=true;scheduleRender();});
 for(const [id,key] of [['density','spacing'],['position','positionY'],['position-x','positionX'],['area-width','areaWidth']])$(id).addEventListener('input',e=>{options[key]=Number(e.target.value);if(key==='positionY')options.position=options.positionY;scheduleRender();});
@@ -153,21 +207,22 @@ $('font-style').addEventListener('change',e=>{options.fontStyle=e.target.value;s
 $('depth').addEventListener('change',e=>{options.depth=e.target.checked;scheduleRender();});
 $('reset').addEventListener('click',()=>{
   options={...defaults,mode:options.mode,paperColor:colors?.preferred||defaults.paperColor};
+  clearColorDraft('paper');clearColorDraft('image');
   $('density').value=options.spacing;$('position').value=options.positionY;$('position-x').value=options.positionX;$('area-width').value=options.areaWidth;$('font-style').value=options.fontStyle;$('depth').checked=options.depth;
   $('image-density').value=options.imageDensity;$('image-hole-size').value=options.imageHoleSize;viewZoom=1;$('zoom').value=100;zoomSensitivity=1;$('zoom-sensitivity').value=1;syncSensitivity();scheduleRender();
 });
 function setView(value){original=value;$('view-result').classList.toggle('active',!value);$('view-original').classList.toggle('active',value);$('view-result').setAttribute('aria-pressed',!value);$('view-original').setAttribute('aria-pressed',value);scheduleRender();}
 $('view-result').addEventListener('click',()=>setView(false));$('view-original').addEventListener('click',()=>setView(true));
-$('zoom').addEventListener('input',()=>{viewZoom=Number($('zoom').value)/100;fitPreview();});new ResizeObserver(fitPreview).observe($('stage'));
+$('zoom').addEventListener('input',()=>{viewZoom=Number($('zoom').value)/100;fitPreview();rememberSettings();});new ResizeObserver(fitPreview).observe($('stage'));
 function syncSensitivity(){const label=zoomSensitivity.toFixed(1)+'×';$('sensitivity-value').textContent=label;$('sensitivity-summary').textContent=label;}
-$('zoom-sensitivity').addEventListener('input',e=>{zoomSensitivity=Number(e.target.value);syncSensitivity();});
+$('zoom-sensitivity').addEventListener('input',e=>{zoomSensitivity=Number(e.target.value);syncSensitivity();rememberSettings();});
 $('stage').addEventListener('wheel',event=>{
   if(!event.ctrlKey||!$('artwork').width)return;
   event.preventDefault();event.stopPropagation();
   const stage=$('stage'),canvas=$('artwork'),before=canvas.getBoundingClientRect();
   const fx=(event.clientX-before.left)/before.width,fy=(event.clientY-before.top)/before.height;
   const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?stage.clientHeight:1);
-  viewZoom=clamp(viewZoom*Math.exp(-delta*.0015*zoomSensitivity),.25,3);$('zoom').value=Math.round(viewZoom*100);fitPreview();
+  viewZoom=clamp(viewZoom*Math.exp(-delta*.0015*zoomSensitivity),.25,3);$('zoom').value=Math.round(viewZoom*100);fitPreview();rememberSettings();
   const after=canvas.getBoundingClientRect();stage.scrollLeft+=after.left+fx*after.width-event.clientX;stage.scrollTop+=after.top+fy*after.height-event.clientY;
 },{passive:false});
 
@@ -180,7 +235,7 @@ function exportDimensions(){
   $('download-png').disabled=!okay;
 }
 document.querySelectorAll('.export-trigger').forEach(b=>b.addEventListener('click',()=>{if(!valid)return;exportDimensions();$('export-dialog').showModal();}));
-$('export-scale').addEventListener('change',exportDimensions);
+$('export-scale').addEventListener('change',()=>{exportDimensions();rememberSettings();});
 function saveBlob(blob,ext){
   if(!blob)throw new Error('error.export');
   const name=$('letters').value.trim().replace(/[<>:"/\\|?*\n\r]/g,' ').slice(0,32)||'untitled';
@@ -218,7 +273,7 @@ if(context?.registerTool){
       if('letters'in input)library.text(input.letters,options.fontStyle);
       const proposed={...options,...('mode'in input?{mode:input.mode}:{}),...('shape'in input?{shape:input.shape}:{}),...('paperColor'in input?{paperColor:input.paperColor,autoColor:false}:{})};
       if(source)createPlan(source.width,source.height,library.text(input.letters??$('letters').value,proposed.fontStyle),proposed);
-      if('letters'in input)$('letters').value=input.letters;options=proposed;render();return {valid,width:plan?.width,height:plan?.height,holes:plan?.points.length};
+      if('letters'in input)$('letters').value=input.letters;options=proposed;clearColorDraft('paper');clearColorDraft('image');render();rememberSettings();return {valid,width:plan?.width,height:plan?.height,holes:plan?.points.length};
     }}
   ]){
     try{Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{});}catch{}
@@ -232,4 +287,9 @@ async function start(){
   catch{fontState='font.failed';$('font-state').textContent=t(fontState);status('error.fontFailed',true);}
   if(imageRequest===initialRequest)await useDemo();else render();
 }
-$('language-select').value='zh';translateDOM();start();
+$('language-select').value=language;
+if(restored)$('letters').value=restored.letters;
+for(const [id,key] of [['hole-size','holeSize'],['density','spacing'],['position','positionY'],['position-x','positionX'],['area-width','areaWidth'],['font-style','fontStyle'],['image-density','imageDensity'],['image-hole-size','imageHoleSize']])$(id).value=options[key];
+$('depth').checked=options.depth;$('zoom').value=Math.round(viewZoom*100);$('zoom-sensitivity').value=zoomSensitivity;$('export-scale').value=restored?.view.exportScale||1;syncSensitivity();
+$('view-result').classList.toggle('active',!original);$('view-original').classList.toggle('active',original);$('view-result').setAttribute('aria-pressed',!original);$('view-original').setAttribute('aria-pressed',original);
+translateDOM();palette.refreshLanguage();settingsNote();syncButtons();syncPlanLabels();setLoading(loadingKey);$('font-state').textContent=t(fontState);$('char-count').textContent=Array.from($('letters').value.normalize('NFC')).length+' / 120';initializing=false;start();

@@ -27,9 +27,9 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '22'
-      - name: Verify layout and rendering geometry
+      - name: Verify geometry, colors and saved settings
         working-directory: punch-studio
-        run: node --test tests/core.test.js
+        run: node --test tests/*.test.js
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Package static editor

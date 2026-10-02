@@ -43,16 +43,17 @@
         <p id="image-settings-hint" class="microcopy">独立调整原画区，不改变文字点阵。</p>
         <div class="setting-heading"><label for="image-density">打孔密度</label><output id="image-density-value" for="image-density">3.5%</output></div><input id="image-density" type="range" min="0" max="12" step="0.5" value="3.5">
         <div class="setting-heading"><label for="image-hole-size">原画孔径</label><output id="image-hole-value" for="image-hole-size">—</output></div><input id="image-hole-size" type="range" min="6" max="60" step="1" value="28">
-        <div class="setting-heading"><label for="image-color">原画孔色</label><button id="link-image-color" class="mini-button selected" aria-pressed="true">跟随底色</button></div><label class="color-picker" for="image-color"><input id="image-color" type="color" value="#e8f2e9" aria-label="自定义原画孔色"><span id="image-color-hex">#E8F2E9</span></label>
+        <div class="setting-heading"><label for="image-color">原画孔色</label><button id="link-image-color" class="mini-button selected" aria-pressed="true">跟随底色</button></div><div class="color-editor"><button id="image-palette" class="palette-trigger" type="button" aria-label="打开原画孔色调色板" aria-haspopup="dialog"><span id="image-color-chip" class="color-chip" aria-hidden="true"></span><span class="palette-label">调色板</span></button><input id="image-color" class="hex-field" type="text" value="#E8F2E9" maxlength="16" autocomplete="off" spellcheck="false" aria-label="原画孔色 HEX 代码" aria-describedby="image-color-error"></div><p id="image-color-error" class="color-error" role="status" hidden></p>
         <div class="setting-heading"><span id="image-shape-label">原画孔形</span><div class="segmented" role="group" aria-labelledby="image-shape-label"><button data-image-shape="square" class="active" aria-pressed="true">方孔</button><button data-image-shape="circle" aria-pressed="false">圆孔</button></div></div>
       </div></details>
       <details class="advanced" id="paper-settings"><summary>背景与细节 <span>纸色 / 切边</span><span aria-hidden="true">⌄</span></summary><div class="advanced-body">
         <div class="setting-heading"><label for="paper-color">画布底色</label><button id="auto-color" class="mini-button selected" aria-pressed="true">智能配色</button></div>
-        <div class="color-row"><label class="color-picker" for="paper-color"><input id="paper-color" type="color" value="#e8f2e9" aria-label="自定义画布底色"><span id="color-hex">#E8F2E9</span></label><div id="swatches" class="swatches" role="group" aria-label="推荐底色"></div></div><p id="color-description" class="microcopy">从原画取色，选择柔和的纸张色。</p>
+        <div class="color-row"><div class="color-editor"><button id="paper-palette" class="palette-trigger" type="button" aria-label="打开画布底色调色板" aria-haspopup="dialog"><span id="paper-color-chip" class="color-chip" aria-hidden="true"></span><span class="palette-label">调色板</span></button><input id="paper-color" class="hex-field" type="text" value="#E8F2E9" maxlength="16" autocomplete="off" spellcheck="false" aria-label="画布底色 HEX 代码" aria-describedby="paper-color-error"></div><p id="paper-color-error" class="color-error" role="status" hidden></p><div id="swatches" class="swatches" role="group" aria-label="推荐底色"></div></div><p id="color-description" class="microcopy">从原画取色，选择柔和的纸张色。</p>
         <label class="checkbox-row"><input id="depth" type="checkbox" checked><span>轻微纸张切边</span></label>
       </div></details>
       <button id="reset" class="reset-button">恢复默认设置</button>
       <p class="side-footer">做好一件小作品。<span aria-hidden="true">✳</span></p>
+      <p id="settings-note" class="microcopy">设置将在此浏览器保留 7 天。</p>
     </aside>
     <section class="studio" aria-label="作品预览">
       <div class="studio-top"><div class="studio-heading"><span class="live-dot"></span><h2>作品预览</h2><span class="studio-subtitle">每个孔，都是一个像素。</span></div><div class="view-toggle" role="group" aria-label="预览模式"><button id="view-result" class="active" aria-pressed="true">作品</button><button id="view-original" aria-pressed="false">原画</button></div></div>
@@ -62,6 +63,16 @@
       <p id="status" class="status" role="status" aria-live="polite"></p>
     </section>
   </main>
+  <dialog id="palette-dialog" aria-labelledby="palette-title">
+    <div class="palette-header"><h2 id="palette-title">画布底色调色板</h2><button id="palette-close" type="button" aria-label="关闭调色板并取消修改">×</button></div>
+    <div id="palette-sv" role="slider" tabindex="0" autofocus aria-label="饱和度与明度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-describedby="palette-help"><span id="palette-cursor" aria-hidden="true"></span></div>
+    <div class="palette-hue-heading"><label for="palette-hue">色相</label><output id="palette-hue-value" for="palette-hue">0°</output></div><input id="palette-hue" type="range" min="0" max="360" step="1" value="0">
+    <div class="palette-code-row"><span id="palette-preview" role="img" aria-label="选中颜色预览"></span><div class="palette-hex-wrap"><label for="palette-hex">HEX 代码</label><input id="palette-hex" type="text" maxlength="16" autocomplete="off" spellcheck="false" aria-describedby="palette-error" value="#E8F2E9"></div></div>
+    <fieldset class="palette-rgb"><legend>RGB 颜色</legend><label for="palette-r">R<input id="palette-r" type="number" min="0" max="255" step="1" inputmode="numeric" aria-describedby="palette-error"></label><label for="palette-g">G<input id="palette-g" type="number" min="0" max="255" step="1" inputmode="numeric" aria-describedby="palette-error"></label><label for="palette-b">B<input id="palette-b" type="number" min="0" max="255" step="1" inputmode="numeric" aria-describedby="palette-error"></label></fieldset>
+    <output id="palette-value" class="palette-value"></output><p id="palette-error" class="color-error" role="status" aria-live="polite" hidden></p>
+    <div class="palette-actions"><button id="palette-cancel" class="button secondary" type="button">取消</button><button id="palette-apply" class="button primary" type="button">完成</button></div>
+    <p id="palette-help" class="microcopy">拖动色块选择颜色；方向键微调，Shift 加快调整。</p>
+  </dialog>
   <dialog id="export-dialog"><form method="dialog"><div class="dialog-top"><span class="eyebrow">TAKE YOUR ART WITH YOU</span><button class="dialog-close" aria-label="关闭导出窗口">×</button></div><h2>让作品离开屏幕。</h2><p>导出完整作品，保留原画与孔洞细节。</p><label for="export-scale">导出尺寸</label><select id="export-scale"><option value="1">原始尺寸</option><option value="2">2 倍尺寸</option></select><p id="export-dimensions" class="microcopy"></p><div class="dialog-actions"><button type="button" id="download-png" class="button primary">下载 PNG ↓</button><button type="button" id="download-svg" class="button secondary">下载 SVG</button></div><small>SVG 内嵌原画，无需另附图片。放大孔洞边缘仍清晰。</small></form></dialog>
   <script type="module" src="./app.js"></script>
 </body>

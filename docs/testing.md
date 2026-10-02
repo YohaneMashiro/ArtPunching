@@ -1,10 +1,10 @@
 # 本地测试与验收
 
-验证日期：2026-10-02。全部在 WSL 中执行，没有改变 Codex 的 WSL 运行设置。此次验证覆盖双轴定位、独立原画散孔、两种分割方向、Ctrl 滚轮缩放、中英界面与示例署名；GitHub Pages 已成功发布并完成线上检查。
+验证日期：2026-10-02。全部在 WSL 中执行，没有改变 Codex 的 WSL 运行设置。此次验证覆盖统一网页调色板、7 天设置记忆、双轴定位、独立原画散孔、分割方向、Ctrl 滚轮缩放、中英界面与示例署名；GitHub Pages 已成功发布并完成线上检查。
 
 ## 结果
 
-16 项算法测试、17 项基础浏览器检查、19 项全面控件检查、10 项双语与署名检查全部通过。全面检查覆盖页面中发现的全部 46 个交互元素及拖放上传，核对实际画布像素、下载文件和 SVG 坐标。浏览器检查使用真实 Chromium；可选接口通过 WebMCP shim 验证状态行为，原生标准的宿主集成未验证。
+31 项单元测试（16 项几何、5 项颜色、10 项保存状态）全部通过。浏览器检查共 61 项：基础 17 项、全面控件 20 项、双语与署名 10 项、调色板 8 项、设置保存 6 项。全面检查覆盖页面中发现的全部 57 个交互元素（包括二维颜色滑块）及拖放上传，核对实际画布像素、下载文件和 SVG 坐标。浏览器检查使用真实 Chromium；可选接口通过 WebMCP shim 验证状态行为，原生标准的宿主集成未验证。
 
 | 范围 | 结果 |
 | --- | --- |
@@ -31,11 +31,19 @@
 | 浏览器缩放 / 导出稳定性 | 浏览器 viewport scale 始终 1；Ctrl 预览缩放前后 SVG 字节完全一致 |
 | 预览极值 / 手机左右布局 | 25–300% 可用；手机 300% 预览不会造成页面横向溢出，画布内可滚动 |
 | 所有按钮、折叠区、色块、恢复默认、右上角唯一导出入口、关闭对话框 | 全部覆盖并通过 |
-| 默认语言 / 中英切换 | 英文浏览器与刷新后均默认中文；切换保留文字、设置、作品像素、缩放与灵敏度 |
+| 默认语言 / 中英切换 | 首次访问或记录过期后默认中文；切换保留文字、设置、作品像素、缩放与灵敏度，刷新恢复已选语言 |
 | 英文文案 / 无障碍标签 / 错误 / 导出 | 静态及动态文案、提示、控件说明、错误与下载完成信息全部覆盖 |
 | 读取图片期间切换语言 | 立即翻译加载状态与上一张预览的统计信息；读取完成保留用户文件名 |
 | 示例原画署名 | 十二時与提供的来源链接一致；上传后隐藏，重新使用示例时恢复 |
 | 英文手机 320 / 390 px | 两种布局与高级设置无页面横向溢出、无脚本异常 |
+| 统一网页调色板 | 页面无系统颜色输入控件；底色与散孔共用 HEX / RGB / HSV 面板 |
+| HEX / RGB 输入 | 3 / 6 位 HEX（可省略 #）、0–255 整数 RGB 联动；无效草稿保留，不改变已接受的颜色 |
+| 调色预览 / 取消 | 实时预览；取消、关闭、Escape、外侧点击恢复颜色与智能 / 跟随状态；完成提交 |
+| 触控 / 键盘选色 | Android 手机触控模拟中的拖动、指针捕获、方向键 / Shift 均改变真实颜色 |
+| 调色导出 | PNG 孔色像素与 SVG 颜色与选色一致；原画散孔调色不改变文字区 |
+| 设置保存 / 过期 | 刷新与同浏览器新页面恢复语言、文字、配色、排版、缩放、灵敏度、预览模式和导出倍数；最后交互 7 天后过期 |
+| 保存边界 / 异常 | 调色临时预览不保存；取消恢复原值；损坏、过期、非法字段安全回退；私密 / 配额受限仍可编辑 |
+| 图片保存范围 | 保存记录不含图片；刷新回到示例，上传图片需重新选择 |
 
 ## 高保真证据
 
@@ -47,14 +55,14 @@
 
 ## 线上发布检查
 
-[线上页面](https://yohanemashiro.github.io/ArtPunching/) 返回 HTTP 200；首页、app.js、core.js、i18n.js、style.css 的 SHA-256 与本地已验证版本一致。真实 Chromium 中确认本地打包字库加载、中文默认、英文切换、示例署名与唯一顶部导出入口；页面无脚本异常。发布前的 46 个交互元素检查均通过。
+[线上页面](https://yohanemashiro.github.io/ArtPunching/) 返回 HTTP 200；首页、app.js、core.js、i18n.js、color.js、palette.js、state.js、style.css 的 SHA-256 与本地已验证版本一致。真实 Chromium 中确认网页调色板、英文选择后刷新恢复设置、示例署名与唯一顶部导出入口；页面无脚本异常。发布前的 57 个交互元素检查均通过。
 
-## 复现算法测试
+## 复现单元测试
 
 在 WSL 的 `punch-studio` 目录使用 Linux Node：
 
 ```bash
-node --test tests/core.test.js
+node --test tests/*.test.js
 ```
 
 应用本身不需要 Node。此次算法验证使用 Node 22.23.3 临时 Linux 运行时，没有安装应用依赖或改动 Windows 的 Node 配置。
@@ -70,6 +78,8 @@ python3 -m venv /tmp/punch-qa
 /tmp/punch-qa/bin/python tests/browser_smoke.py
 /tmp/punch-qa/bin/python tests/control_audit.py
 /tmp/punch-qa/bin/python tests/i18n_smoke.py
+/tmp/punch-qa/bin/python tests/palette_smoke.py
+/tmp/punch-qa/bin/python tests/state_smoke.py
 ```
 
 Linux 浏览器需要系统图形库；此次环境缺少 `libasound.so.2`，测试时将 Ubuntu 的 `libasound2t64` 解包到临时目录并通过 `LD_LIBRARY_PATH` 使用，没有切换 Windows 执行环境。屏幕截图使用 Windows 本地 UI 字体供浏览器显示中文，这些商业字体未加入网页或项目分发。
@@ -80,15 +90,18 @@ Linux 浏览器需要系统图形库；此次环境缺少 `libasound.so.2`，测
 - `studio-desktop.png` / `studio-mobile.png`：桌面和手机截图
 - `punch.png` / `punch-2x.png` / `punch.svg`：原画文字导出
 - `transfer.png` / `transfer.svg`：碎片拼字导出
-- `control-audit/results.json`：19 项控件验收与全部 46 项覆盖清单
+- `control-audit/results.json`：20 项控件验收与全部 57 项覆盖清单
 - `control-audit/*.svg`：位置滑块改变导出坐标的证据
 - `control-audit/mobile-horizontal.png`：手机左右拼字布局
 - `i18n/results.json`：10 项双语、署名与读取竞争检查
 - `i18n/english-desktop.png` / `i18n/english-mobile-*.png`：英文桌面与手机截图
 - `i18n/english-2x.png` / `i18n/english.svg`：英文界面实际下载文件
+- `palette/results.json` / `palette/touch-palette.png`：8 项调色验收及触控截图
+- `palette/palette.png` / `palette/palette.svg`：调色后的实际导出
+- `state/results.json`：6 项浏览器缓存、过期与异常验收
 
 这些生成物已在项目 `.gitignore` 中忽略。浏览器检查默认访问 `http://localhost:4173/`，可用 `PUNCH_TEST_URL` 环境变量替换。
 
 ## 尚未覆盖
 
-尚未进行真实 Firefox/Safari、iPhone 内存压力、广色域原图、实体纸张打孔或用户识读实验。当前浏览器预算明确限制极大画布，不承诺无限长文字。高频图案、很小孔径的精细纹理会受到浏览器重采样影响。
+手机触控使用 Chromium 模拟，尚未进行真实 Android/iOS 设备、Firefox/Safari、iPhone 内存压力、广色域原图、实体纸张打孔或用户识读实验。当前浏览器预算明确限制极大画布，不承诺无限长文字。高频图案、很小孔径的精细纹理会受到浏览器重采样影响。

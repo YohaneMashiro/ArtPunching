@@ -387,12 +387,37 @@ with sync_playwright() as p:
     assert abs(largest / smallest - 12) < .01
     record('Ctrl+wheel sensitivity, ordinary wheel, 25–300% range, and unchanged export', {'lowSensitivityZoom': low, 'highSensitivityZoom': high})
 
+    # Unified browser palette: every control changes a draft or closes/commits it.
+    assert page.locator('input[type=color]').count() == 0
+    original_color = read(page)['settings']['paperColor']
+    original_pixels = digest(page)
+    click(page, '#paper-palette', render=False)
+    assert page.locator('#palette-dialog').evaluate('d=>d.open')
+    fill(page, '#palette-hex', '#334455')
+    assert digest(page) != original_pixels
+    for selector, value in [('#palette-r', '32'), ('#palette-g', '96'), ('#palette-b', '160'), ('#palette-hue', '180')]:
+        fill(page, selector, value)
+    click(page, '#palette-sv')
+    click(page, '#palette-cancel')
+    assert read(page)['settings']['paperColor'] == original_color
+    assert digest(page) == original_pixels
+    click(page, '#paper-palette', render=False)
+    fill(page, '#palette-hex', '#223344')
+    click(page, '#palette-close')
+    assert digest(page) == original_pixels
+    click(page, '#image-palette', render=False)
+    fill(page, '#palette-hex', '#445566')
+    click(page, '#palette-apply')
+    assert read(page)['settings']['imageHoleColor'] == '#445566'
+    assert not page.locator('#palette-dialog').evaluate('d=>d.open')
+    record('unified palette HEX/RGB/HSV/SV, both target buttons, cancel, close, and apply are actionable')
+
     # The brand link is actionable navigation and correctly reloads the editor.
     click(page, '.brand', 'brand', render=False)
     ready(page)
     assert page.locator('#image-name').inner_text() == demo_name
-    record('brand returns to fresh editor')
-    inventory = page.evaluate('''()=>Array.from(document.querySelectorAll('button,input,select,textarea,details>summary,a.brand')).map(e=>{
+    record('brand reloads the editor with the demo source')
+    inventory = page.evaluate('''()=>Array.from(document.querySelectorAll('button,input,select,textarea,details>summary,a.brand,[role="slider"][tabindex]')).map(e=>{
       if(e.id)return e.id;
       if(e.dataset.mode)return 'mode-'+e.dataset.mode;
       if(e.dataset.shape)return 'shape-'+e.dataset.shape;

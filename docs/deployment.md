@@ -1,6 +1,6 @@
 # 发布与部署
 
-目标仓库：[YohaneMashiro/ArtPunching](https://github.com/YohaneMashiro/ArtPunching)。当前 GitHub Pages 工作流已准备，待本机 GitHub 授权后推送并启用，尚未确认线上发布成功。提交使用邮箱 `ylpwannzdm@126.com`。
+源码仓库：[YohaneMashiro/ArtPunching](https://github.com/YohaneMashiro/ArtPunching)。线上页面：[Alive · 打孔艺术工作室](https://yohanemashiro.github.io/ArtPunching/)。2026-10-02 已完成授权、推送、启用 GitHub Pages、成功运行发布工作流，并验证线上资源和浏览器功能。提交使用邮箱 `ylpwannzdm@126.com`。
 
 应用无后端，整个 `punch-studio/dist/` 可以直接作为静态站点发布。所有地址为相对地址，能放在 GitHub Pages 的仓库子路径。
 
@@ -8,12 +8,12 @@
 
 `.github/workflows/pages.yml` 在推送 `main` 时或手动触发时执行：运行算法测试，将 `punch-studio/dist` 打包为 Pages artifact，再发布到 `github-pages` 环境。应用无需构建；测试失败会停止发布。
 
-发布步骤：
+重新部署或迁移仓库时的步骤：
 
 1. 在本机完成 GitHub 登录，所用账号需有目标仓库的写入和 Pages 设置权限；无需把密钥发到聊天或写入项目。
 2. 将项目推送到目标仓库的 `main`。
 3. 在仓库 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。
-4. 在 **Actions** 检查工作流，必要时手动运行。成功后访问预期地址 `https://yohanemashiro.github.io/ArtPunching/`，核对上传、字库、缩放与导出。
+4. 在 **Actions** 检查工作流，必要时手动运行。成功后访问线上页面，核对上传、字库、缩放与导出。当前仓库的初次部署已完成，无需重复设置。
 
 工作流使用平台提供的 `GITHUB_TOKEN` 与 `pages: write`、`id-token: write` 权限，无需另外创建部署 secret。步骤与权限依据 [GitHub Pages 自定义工作流文档](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。静态文件使用相对路径，兼容 `/ArtPunching/` 子路径。
 

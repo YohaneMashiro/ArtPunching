@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f5ef">
+  <meta name="description" content="上传原画、输入文字，制作属于你的打孔艺术。支持中英文点阵、智能配色与高清导出，图片在浏览器本地处理。">
+  <title>Alive · 打孔艺术工作室</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23264035'/%3E%3Cpath d='M8 8h4v4H8zm6 0h4v4h-4zm6 0h4v4h-4zM8 14h4v4H8zm12 0h4v4h-4zM8 20h4v4H8zm6 0h4v4h-4zm6 0h4v4h-4z' fill='%23d7ebba'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="./" aria-label="Alive 打孔艺术工作室"><span class="brandmark" aria-hidden="true">▦</span><strong>alive<span class="branddot">.</span></strong><span class="brandnote">打孔艺术工作室</span></a><span class="local-badge"><i></i> 图片留在你的浏览器</span><button id="export-top" class="button primary export-trigger" disabled><span aria-hidden="true">↗</span> 导出作品</button></header>
+  <main class="workspace">
+    <aside class="controls" aria-label="作品设置">
+      <div class="panel-title"><span class="eyebrow">YOUR LITTLE ART LAB</span><h1>把文字，留在画里。</h1><p>一张原画，一句话，一件新的作品。</p></div>
+      <section class="control-section"><div class="section-title"><span class="step">01</span><h2>选择原画</h2></div>
+        <label class="upload-zone" id="dropzone" for="image-file"><img id="thumb" src="./assets/sample.png" alt="当前原画缩略图"><span class="upload-copy"><strong id="image-name">绿野 · 示例原画</strong><span>点击更换，或把图片拖到这里</span><small>PNG / JPG / WebP · 最大 30 MB</small></span><span class="upload-plus" aria-hidden="true">＋</span></label>
+        <input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+        <button id="use-demo" class="text-button">使用示例原画 <span aria-hidden="true">↗</span></button>
+      </section>
+      <section class="control-section"><div class="section-title"><span class="step">02</span><h2>写下文字</h2><span id="char-count" class="section-meta">9 / 120</span></div>
+        <label for="letters" class="sr-only">打孔文字</label><textarea id="letters" maxlength="240" spellcheck="false" rows="3" placeholder="输入名字、短句或一句喜欢的话">ALIVE ART</textarea>
+        <div class="input-hint"><span>中英文均可 · Enter 手动换行</span><span id="font-state">字库加载中…</span></div>
+      </section>
+      <section class="control-section"><div class="section-title"><span class="step">03</span><h2>选择打孔方式</h2></div>
+        <div class="mode-options compact-modes" role="group" aria-label="打孔方式"><button class="mode-option active" data-mode="punch" aria-pressed="true"><span class="mode-icon" aria-hidden="true">▦</span><strong>原画打字</strong></button><button class="mode-option" data-mode="transfer" aria-pressed="false"><span class="mode-icon" aria-hidden="true">⠿</span><strong>图块拼字</strong></button></div>
+        <div id="split-controls" class="split-controls" hidden><span>画面布局</span><div class="segmented" role="group" aria-label="分割方向"><button data-split="auto" class="active" aria-pressed="true">自动</button><button data-split="vertical" aria-pressed="false">上下</button><button data-split="horizontal" aria-pressed="false">左右</button></div></div><p id="split-hint" class="microcopy" hidden>根据原画比例选择布局。</p>
+      </section>
+      <details class="advanced" id="text-settings" open><summary>文字与排版 <span>孔径 / 位置</span><span aria-hidden="true">⌄</span></summary>
+        <div class="advanced-body">
+          <div class="setting-heading"><label for="hole-size">点阵大小</label><button id="auto-size" class="mini-button selected" aria-pressed="true">自动估算</button></div><div class="range-row"><input id="hole-size" type="range" min="3" max="60" step="0.5" value="16"><output id="hole-value" for="hole-size">自动</output></div><p id="size-hint" class="microcopy">随文字长度和可用空间自动调整。</p>
+          <div class="setting-heading"><label for="position-x">水平位置</label><output id="position-x-value" for="position-x">50%</output></div><input id="position-x" type="range" min="0" max="100" value="50">
+          <div class="setting-heading"><label for="position">垂直位置</label><output id="position-value" for="position">82%</output></div><input id="position" type="range" min="0" max="100" value="82">
+          <div class="setting-heading"><span id="shape-label">文字点形状</span><div class="segmented" role="group" aria-labelledby="shape-label"><button data-shape="square" class="active" aria-pressed="true">方形</button><button data-shape="circle" aria-pressed="false">圆形</button></div></div>
+          <div class="setting-heading"><label for="density">点阵留白</label><output id="density-value" for="density">32%</output></div><input id="density" type="range" min="15" max="55" step="1" value="32">
+          <div class="setting-heading"><label for="area-width">文字区域宽度</label><output id="width-value" for="area-width">84%</output></div><input id="area-width" type="range" min="35" max="94" value="84">
+          <div class="setting-heading"><label for="font-style">点阵字库</label><select id="font-style"><option value="classic">经典 5×7 / 中文 12×12</option><option value="fusion">Fusion 12 像素字</option></select></div>
+        </div>
+      </details>
+      <details class="advanced" id="image-settings" hidden><summary>原画散孔 <span>密度 / 孔色 / 形状</span><span aria-hidden="true">⌄</span></summary><div class="advanced-body">
+        <p id="image-settings-hint" class="microcopy">独立调整原画区，不改变文字点阵。</p>
+        <div class="setting-heading"><label for="image-density">打孔密度</label><output id="image-density-value" for="image-density">3.5%</output></div><input id="image-density" type="range" min="0" max="12" step="0.5" value="3.5">
+        <div class="setting-heading"><label for="image-hole-size">原画孔径</label><output id="image-hole-value" for="image-hole-size">—</output></div><input id="image-hole-size" type="range" min="6" max="60" step="1" value="28">
+        <div class="setting-heading"><label for="image-color">原画孔色</label><button id="link-image-color" class="mini-button selected" aria-pressed="true">跟随底色</button></div><label class="color-picker" for="image-color"><input id="image-color" type="color" value="#e8f2e9" aria-label="自定义原画孔色"><span id="image-color-hex">#E8F2E9</span></label>
+        <div class="setting-heading"><span id="image-shape-label">原画孔形</span><div class="segmented" role="group" aria-labelledby="image-shape-label"><button data-image-shape="square" class="active" aria-pressed="true">方孔</button><button data-image-shape="circle" aria-pressed="false">圆孔</button></div></div>
+      </div></details>
+      <details class="advanced" id="paper-settings"><summary>背景与细节 <span>纸色 / 切边</span><span aria-hidden="true">⌄</span></summary><div class="advanced-body">
+        <div class="setting-heading"><label for="paper-color">画布底色</label><button id="auto-color" class="mini-button selected" aria-pressed="true">智能配色</button></div>
+        <div class="color-row"><label class="color-picker" for="paper-color"><input id="paper-color" type="color" value="#e8f2e9" aria-label="自定义画布底色"><span id="color-hex">#E8F2E9</span></label><div id="swatches" class="swatches" role="group" aria-label="推荐底色"></div></div><p id="color-description" class="microcopy">从原画取色，选择柔和的纸张色。</p>
+        <label class="checkbox-row"><input id="depth" type="checkbox" checked><span>轻微纸张切边</span></label>
+      </div></details>
+      <button id="reset" class="reset-button">恢复默认设置</button>
+      <p class="side-footer">做好一件小作品。<span aria-hidden="true">✳</span></p>
+    </aside>
+    <section class="studio" aria-label="作品预览">
+      <div class="studio-top"><div class="studio-heading"><span class="live-dot"></span><h2>作品预览</h2><span class="studio-subtitle">每个孔，都是一个像素。</span></div><div class="view-toggle" role="group" aria-label="预览模式"><button id="view-result" class="active" aria-pressed="true">作品</button><button id="view-original" aria-pressed="false">原画</button></div></div>
+      <div id="stage" class="stage"><div class="art-mat"><canvas id="artwork" aria-label="实时生成的打孔艺术作品"></canvas><div id="loading" class="loading">正在准备原画与点阵字库…</div></div></div>
+      <div class="studio-bottom"><div class="art-info"><span id="dimensions">—</span><span class="info-divider">/</span><span id="hole-count">— 个孔</span><span id="text-count" hidden></span><span class="info-divider">/</span><span id="line-count">— 行文字</span></div><div class="zoom-tools"><label class="zoom-control" for="zoom"><span title="在预览区按住 Ctrl 滚动滚轮">Ctrl + 滚轮</span><input id="zoom" type="range" min="25" max="300" step="1" value="100" aria-label="预览缩放"><output id="zoom-value" for="zoom">100%</output></label><details id="sensitivity-settings" class="sensitivity-settings"><summary>灵敏度 <span id="sensitivity-summary">1.0×</span></summary><div class="sensitivity-popover"><label for="zoom-sensitivity">滚轮缩放灵敏度</label><div class="range-row"><input id="zoom-sensitivity" type="range" min="0.2" max="2.5" step="0.1" value="1"><output id="sensitivity-value" for="zoom-sensitivity">1.0×</output></div></div></details></div></div>
+      <div class="studio-note"><span aria-hidden="true">✳</span><p id="composition-hint">保留原画的色彩与纹理，只在文字的位置打孔。</p><button id="export-bottom" class="text-button export-trigger" disabled>导出高清 PNG <span aria-hidden="true">↗</span></button></div>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+  <dialog id="export-dialog"><form method="dialog"><div class="dialog-top"><span class="eyebrow">TAKE YOUR ART WITH YOU</span><button class="dialog-close" aria-label="关闭导出窗口">×</button></div><h2>让作品离开屏幕。</h2><p>导出完整作品，保留原画与孔洞细节。</p><label for="export-scale">导出尺寸</label><select id="export-scale"><option value="1">原始尺寸</option><option value="2">2 倍尺寸</option></select><p id="export-dimensions" class="microcopy"></p><div class="dialog-actions"><button type="button" id="download-png" class="button primary">下载 PNG <span aria-hidden="true">↓</span></button><button type="button" id="download-svg" class="button secondary">下载 SVG</button></div><small>SVG 内嵌原画，无需另附图片。放大孔洞边缘仍清晰。</small></form></dialog>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

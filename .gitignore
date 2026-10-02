@@ -1,0 +1,6 @@
+punch-studio/tests/artifacts/
+**/__pycache__/
+.sites-runtime/
+*.tar.gz
+.env
+.env.*
